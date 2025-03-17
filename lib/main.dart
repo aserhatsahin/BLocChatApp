@@ -1,3 +1,4 @@
+import 'package:bloc_chatapp/modules/auth_module/ui/auth/welcome_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,12 +10,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: WelcomeView());
   }
 }

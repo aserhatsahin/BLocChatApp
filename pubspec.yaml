@@ -1,6 +1,6 @@
 name: bloc_chatapp
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -9,7 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  flutter_bloc: ^9.1.0
+  cupertino_icons: ^1.0.8
+  mesh_gradient: ^1.3.8
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
