@@ -1,13 +1,13 @@
 import 'package:bloc_chatapp/modules/auth_module/ui/auth/widgets/sign_in_form_widget.dart';
 import 'package:flutter/cupertino.dart';
 
-class SignInView extends StatefulWidget {
-  const SignInView({super.key});
+class SignInLayout extends StatefulWidget {
+  const SignInLayout({super.key});
   @override
-  State<SignInView> createState() => _SignInViewState();
+  State<SignInLayout> createState() => _SignInLayoutState();
 }
 
-class _SignInViewState extends State<SignInView> {
+class _SignInLayoutState extends State<SignInLayout> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool obscurePassword = true;

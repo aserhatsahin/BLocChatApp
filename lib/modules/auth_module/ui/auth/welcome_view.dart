@@ -51,7 +51,7 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
                   child: Expanded(
                     child: TabBarView(
                       controller: tabController,
-                      children: [SignInView(), SignUpView()],
+                      children: [SignInLayout(), SignUpLayout()],
                     ),
                   ),
                 ),
