@@ -50,3 +50,5 @@ windows/runner/win32_window.h
 windows/runner/resources/app_icon.ico
 windows/runner/flutter_window.h
 windows/runner/flutter_window.cpp
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/generated_plugin_registrant.cc

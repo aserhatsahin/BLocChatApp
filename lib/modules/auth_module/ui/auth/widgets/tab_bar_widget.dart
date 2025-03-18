@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 
 import 'package:bloc_chatapp/commons/export_commons.dart';
@@ -14,7 +12,7 @@ class TabBarWidget extends StatelessWidget {
       children: [
         TabBar(
           controller: tabController,
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          unselectedLabelColor: AppColors.primary.withAlpha(150),
           labelColor: AppColors.primary,
           indicatorSize: TabBarIndicatorSize.tab, // SADECE SEÇİLİ OLAN SEKMEYİ ÇİZ
           indicatorWeight: 3.5, // Çizginin kalınlığı
@@ -31,7 +29,6 @@ class TabBarWidget extends StatelessWidget {
             ),
           ],
         ),
-       
       ],
     );
   }
