@@ -1,7 +1,6 @@
 import 'package:bloc_chatapp/data/entitites/user_entity.dart';
 import 'package:equatable/equatable.dart';
 
-
 class UserModel extends Equatable {
   final String uid;
   final String email;
@@ -20,12 +19,10 @@ class UserModel extends Equatable {
     return UserEntity(uid: uid, email: email, name: username, imageUrl: imageUrl);
   }
 
-
   // getter to determine whether the current user is empty
   bool get isEmpty => this == UserModel.empty;
   //getter to determine whether the current user is not empty
   bool get isNotEmpty => this != UserModel.empty;
-
 
   UserModel copyWith({String? uid, String? email, String? username, String? imageUrl}) {
     return UserModel(
@@ -47,6 +44,7 @@ class UserModel extends Equatable {
   }
 
   @override
-  // TODO: implement props
   List<Object?> get props => [uid, email, username, imageUrl];
+
+  get user => UserModel(uid: uid, email: email, username: username, imageUrl: imageUrl);
 }

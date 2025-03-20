@@ -1,17 +1,33 @@
-import 'package:bloc_chatapp/modules/auth_module/ui/auth/welcome_view.dart';
+import 'package:bloc_chatapp/app.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
-  runApp(const MainApp());
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-}
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  // FirebaseAuth.instance.authStateChanges().listen((User? user) {
+  //   if (user == null) {
+  //     log("⚠️ Kullanıcı oturumu açık değil.");
+  //   } else {
+  //     log("✅ Kullanıcı giriş yapmış: ${user.email}");
+  //   }
+  // });
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: WelcomeView());
-  }
+  // FirebaseAuth.instance
+  //     // ignore: deprecated_member_use
+  //     .fetchSignInMethodsForEmail("test@gmail.com")
+  //     .then((methods) {
+  //       if (methods.isEmpty) {
+  //         log("🔴 Bu e-posta ile kayıtlı kullanıcı YOK.");
+  //       } else {
+  //         log("✅ Kullanıcı Firebase'de var: ${methods}");
+  //       }
+  //     })
+  //     .catchError((error) {
+  //       log("🚨 Firebase Kullanıcı Hatası: $error");
+  //     });
+
+  runApp(MainApp());
 }

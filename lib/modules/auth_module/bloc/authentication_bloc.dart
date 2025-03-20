@@ -1,8 +1,7 @@
-import 'dart:nativewrappers/_internal/vm/lib/developer.dart';
-
 import 'package:bloc/bloc.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
-import 'package:bloc_chatapp/data/repositories/user/firebase_user_repository.dart';
+import 'dart:developer';
+import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meta/meta.dart';
@@ -11,28 +10,42 @@ part 'authentication_event.dart';
 part 'authentication_state.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final FirebaseUserRepository _userRepository;
+  final UserRepository _userRepository;
 
-  AuthenticationBloc(FirebaseUserRepository userRepository)
+  AuthenticationBloc(UserRepository userRepository)
     : _userRepository = userRepository,
       super(AuthenticationInitial()) {
     on<SignInRequested>((event, emit) async {
       try {
         emit(AuthenticationLoading());
+
         await _userRepository.signIn(event.email, event.password);
 
-        // Firebase, kullanıcı giriş yaptıktan sonra UID'yi atar.
-        // Bu yüzden giriş event'inde UID olmaz, giriş yapıldıktan sonra FirebaseAuth'tan almak gerekir.
-        final uid = FirebaseAuth.instance.currentUser!.uid;
-
-        if (uid.isNotEmpty) {
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser == null) {
+          emit(AuthenticationFailure("User not found"));
+          return;
+        }
+        final uid = currentUser.uid;
+        // Kullanıcı Firestore’da var mı kontrol et
+        try {
           UserModel userModel = await _userRepository.getUserData(uid);
 
           if (userModel.isNotEmpty) {
             emit(AuthenticationSuccess(userModel));
+          } else {
+            emit(
+              AuthenticationSuccess(
+                UserModel(uid: uid, email: event.email, username: "Unknown", imageUrl: ''),
+              ),
+            );
           }
-        } else {
-          emit(AuthenticationFailure('User not found'));
+        } catch (e) {
+          emit(
+            AuthenticationSuccess(
+              UserModel(uid: uid, email: event.email, username: "Unknown", imageUrl: ''),
+            ),
+          );
         }
       } catch (e) {
         emit(AuthenticationFailure(e.toString()));
@@ -42,15 +55,12 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<SignUpRequested>((event, emit) async {
       try {
         emit(AuthenticationLoading());
-        await _userRepository.signUp(event.user, event.password);
-        final uid = FirebaseAuth.instance.currentUser!.uid;
-        UserModel userModel = await userRepository.getUserData(uid);
 
-        if (userModel.isNotEmpty) {
-          emit(AuthenticationSuccess(userModel));
-        } else {
-          emit(AuthenticationFailure('Cannot sign up'));
-        }
+        UserModel user = await _userRepository.signUp(event.user, event.password);
+
+        await _userRepository.setUserData(user);
+
+        emit(AuthenticationSuccess(user));
       } catch (e) {
         emit(AuthenticationFailure(e.toString()));
       }
@@ -59,10 +69,21 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<LogOutRequested>((event, emit) async {
       try {
         await _userRepository.logOut();
+
         emit(AuthenticationEnded());
-      } catch (e) {
-        log(e.toString());
-      }
+      } catch (e) {}
     });
+  }
+
+  @override
+  void onEvent(AuthenticationEvent event) {
+    super.onEvent(event);
+    log("🔵 EVENT RECEIVED: $event");
+  }
+
+  @override
+  void onChange(Change<AuthenticationState> change) {
+    super.onChange(change);
+    log("🔄 STATE CHANGED: $change");
   }
 }

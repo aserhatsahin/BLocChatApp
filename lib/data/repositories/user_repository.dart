@@ -6,7 +6,7 @@ abstract class UserRepository {
 
   Future<void> logOut();
 
-  Future<void> signUp(UserModel user, String password);
+  Future<UserModel> signUp(UserModel user, String password);
 
   Future<void> setUserData(UserModel user);
 

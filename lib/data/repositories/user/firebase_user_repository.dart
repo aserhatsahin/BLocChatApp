@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:nativewrappers/_internal/vm/lib/developer.dart';
+import 'dart:developer';
 
 import 'package:bloc_chatapp/data/entitites/user_entity.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
@@ -40,10 +40,14 @@ class FirebaseUserRepository implements UserRepository {
   @override
   Future<void> setUserData(UserModel user) async {
     try {
-      await userCollection.doc(user.uid).set(user.toEntity().toDocument());
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'email': user.email,
+        'username': user.username,
+        'imageUrl': user.imageUrl,
+      });
     } catch (e) {
-      log(e.toString());
-      rethrow;
+      throw Exception("Firestore kullanıcı eklenemedi");
     }
   }
 
@@ -59,13 +63,24 @@ class FirebaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<void> signUp(UserModel user, String password) async {
+  Future<UserModel> signUp(UserModel user, String password) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(email: user.email, password: password);
-      user = user.copyWith(uid: user.uid); //user.user!.uid ?
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: user.email,
+        password: password,
+      );
+
+      // Yeni bir UserModel oluştur ve UID'yi güncelle
+      UserModel updatedUser = UserModel(
+        uid: userCredential.user!.uid, // UID'yi buradan alıyoruz
+        email: user.email,
+        username: user.username,
+        imageUrl: user.imageUrl,
+      );
+
+      return updatedUser;
     } catch (e) {
-      log(e.toString());
-      rethrow;
+      throw e;
     }
   }
 

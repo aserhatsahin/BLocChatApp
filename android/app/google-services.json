@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "356111468264",
+    "project_id": "serchat-7c041",
+    "storage_bucket": "serchat-7c041.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356111468264:android:dc8ed31e7eb4b87680ab5d",
+        "android_client_info": {
+          "package_name": "com.example.bloc_chatapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBerVAHrC0cLjJG4L8olo-k2HALWX2RPcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

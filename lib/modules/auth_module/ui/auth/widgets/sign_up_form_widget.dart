@@ -1,15 +1,22 @@
+// import 'dart:developer';
+
 import 'package:bloc_chatapp/commons/widgets/input_text_field.dart';
 import 'package:bloc_chatapp/commons/widgets/submit_button_widget.dart';
+import 'package:bloc_chatapp/data/models/user_model.dart';
 import 'package:bloc_chatapp/globals/styles/strings.dart';
+import 'package:bloc_chatapp/modules/auth_module/bloc/authentication_bloc.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc_chatapp/commons/export_commons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpFormWidget extends StatefulWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final TextEditingController nameController;
   final bool signUpRequired;
+
   const SignUpFormWidget({
     super.key,
     required this.nameController,
@@ -68,62 +75,20 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
                 keyboardType: TextInputType.visiblePassword,
                 prefixIcon: const Icon(CupertinoIcons.lock_fill),
                 onChanged: (val) {
-                  if (val!.contains(RegExp(r'[A-Z]'))) {
-                    setState(() {
-                      containsUpperCase = true;
-                    });
-                  } else {
-                    setState(() {
-                      containsUpperCase = false;
-                    });
-                  }
-                  if (val.contains(RegExp(r'[a-z]'))) {
-                    setState(() {
-                      containsLowerCase = true;
-                    });
-                  } else {
-                    setState(() {
-                      containsLowerCase = false;
-                    });
-                  }
-                  if (val.contains(RegExp(r'[0-9]'))) {
-                    setState(() {
-                      containsNumber = true;
-                    });
-                  } else {
-                    setState(() {
-                      containsNumber = false;
-                    });
-                  }
-                  if (val.contains(specialCharRexExp)) {
-                    setState(() {
-                      containsSpecialChar = true;
-                    });
-                  } else {
-                    setState(() {
-                      containsSpecialChar = false;
-                    });
-                  }
-                  if (val.length >= 8) {
-                    setState(() {
-                      contains8Length = true;
-                    });
-                  } else {
-                    setState(() {
-                      contains8Length = false;
-                    });
-                  }
-                  return null;
+                  setState(() {
+                    containsUpperCase = val!.contains(RegExp(r'[A-Z]'));
+                    containsLowerCase = val.contains(RegExp(r'[a-z]'));
+                    containsNumber = val.contains(RegExp(r'[0-9]'));
+                    containsSpecialChar = val.contains(specialCharRexExp);
+                    contains8Length = val.length >= 8;
+                  });
                 },
                 suffixIcon: IconButton(
                   onPressed: () {
                     setState(() {
                       obscurePassword = !obscurePassword;
-                      if (obscurePassword) {
-                        iconPassword = CupertinoIcons.eye_fill;
-                      } else {
-                        iconPassword = CupertinoIcons.eye_slash_fill;
-                      }
+                      iconPassword =
+                          obscurePassword ? CupertinoIcons.eye_fill : CupertinoIcons.eye_slash_fill;
                     });
                   },
                   icon: Icon(iconPassword),
@@ -206,49 +171,41 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             !signUpRequired
-                ? SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: SubmitButton(
-                    onTap: () {},
-                    colors: [
-                      AppColors.primary,
-                      AppColors.accent,
-                      AppColors.secondary,
-                      AppColors.darkBackground,
-                    ],
-                    child: Text(
-                      'Sign Up',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                ? BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                  builder: (BuildContext context, state) {
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      child: SubmitButton(
+                        onTap: () {
+                          UserModel user = UserModel(
+                            uid: '',
+                            email: widget.emailController.text,
+                            username: widget.nameController.text,
+                            imageUrl: '',
+                          );
+
+                          context.read<AuthenticationBloc>().add(
+                            SignUpRequested(user, widget.passwordController.text),
+                          );
+                        },
+                        colors: [
+                          AppColors.primary,
+                          AppColors.accent,
+                          AppColors.secondary,
+                          AppColors.darkBackground,
+                        ],
+                        child: Text(
+                          'Sign Up',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  // child: TextButton(
-                  //   onPressed: () {
-                  //     ///????
-                  //   },
-                  //   style: TextButton.styleFrom(
-                  //     elevation: 3.0,
-                  //     backgroundColor: Theme.of(context).colorScheme.primary,
-                  //     foregroundColor: Colors.white,
-                  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
-                  //   ),
-                  //   child: const Padding(
-                  //     padding: EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                  //     child: Text(
-                  //       'Sign Up',
-                  //       textAlign: TextAlign.center,
-                  //       style: TextStyle(
-                  //         color: Colors.white,
-                  //         fontSize: 16,
-                  //         fontWeight: FontWeight.w600,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                    );
+                  },
                 )
                 : const CircularProgressIndicator(),
           ],
