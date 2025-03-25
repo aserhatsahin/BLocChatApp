@@ -4,7 +4,7 @@ import 'package:bloc_chatapp/modules/auth_module/bloc/authentication_bloc.dart';
 import 'package:bloc_chatapp/modules/auth_module/ui/auth/widgets/sign_in_layout.dart';
 import 'package:bloc_chatapp/modules/auth_module/ui/auth/widgets/sign_up_layout.dart';
 import 'package:bloc_chatapp/modules/auth_module/ui/auth/widgets/tab_bar_widget.dart';
-import 'package:bloc_chatapp/modules/messages_module/ui/messages_page_view.dart';
+import 'package:bloc_chatapp/modules/chat_list_module/ui/messages_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +37,7 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
             if (state is AuthenticationSuccess) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => MessagesPage()),
+                MaterialPageRoute(builder: (context) => ChatListPage()),
               );
             }
           },
