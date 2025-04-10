@@ -9,7 +9,7 @@ abstract class ChatRepository {
   Stream<QuerySnapshot> getChatData(String uid);
 
 
-Stream<List<ChatModel>>  getUserChats();
+Stream<List<ChatModel>>  getUserChats(String uid);
 
 
 Future<void> createChatIfNotExist(String uid);

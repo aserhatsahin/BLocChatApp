@@ -26,7 +26,7 @@ class AppStyles {
   static const double textExtraLarge = 32.0;
 
   // **Radius ve Border Değerleri**
-  static const double borderRadiusSmall = 8.0;
+  static const double borderRadiusSmall = 10.0;
   static const double borderRadiusMedium = 16.0;
   static const double borderRadiusLarge = 24.0;
   static const double borderRadiusXLarge = 50.0;

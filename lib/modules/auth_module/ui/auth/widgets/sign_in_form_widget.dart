@@ -1,7 +1,7 @@
 import 'package:bloc_chatapp/commons/widgets/submit_button_widget.dart';
 import 'package:bloc_chatapp/globals/styles/strings.dart';
 import 'package:bloc_chatapp/modules/auth_module/bloc/authentication_bloc.dart';
-import 'package:bloc_chatapp/modules/chat_list_module/ui/messages_page_view.dart';
+import 'package:bloc_chatapp/modules/chat_list_module/ui/chat_list_page_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc_chatapp/commons/export_commons.dart';

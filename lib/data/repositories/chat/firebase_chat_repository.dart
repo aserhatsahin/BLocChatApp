@@ -1,3 +1,5 @@
+
+
 import 'package:bloc_chatapp/data/entitites/chat_entity.dart';
 import 'package:bloc_chatapp/data/models/chat_model.dart';
 import 'package:bloc_chatapp/data/models/message_model.dart';
@@ -8,26 +10,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FirebaseChatRepository extends ChatRepository {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   @override
   Stream<ChatModel?> get chatModel => throw UnimplementedError();
 
   @override
-  //to get the messsages in a chat
   Stream<QuerySnapshot> getChatData(String receiverUid) {
-    User currentUser = auth.currentUser!;
-    var currentUserUid = currentUser.uid;
-    String chatId = "$currentUserUid-$receiverUid";
+    final currentUserUid = auth.currentUser!.uid;
+    final chatId = "$currentUserUid-$receiverUid";
 
     return firestore.collection('chats').doc(chatId).collection('messages').snapshots();
   }
 
   @override
   Future<void> sendMessage(String receiverUid, String message) async {
-    User currentUser = auth.currentUser!;
+    final currentUser = auth.currentUser!;
+    final currentUserUid = currentUser.uid;
+    final chatId = "$currentUserUid-$receiverUid";
 
-    var currentUserUid = currentUser.uid;
-
-    String chatId = "$currentUserUid-$receiverUid";
     await firestore
         .collection('chats')
         .doc(chatId)
@@ -40,40 +40,49 @@ class FirebaseChatRepository extends ChatRepository {
             sendedAt: DateTime.now(),
           ).toEntity().toDocument(),
         );
+
+    await firestore.collection('chats').doc(chatId).update({
+      'lastMessage': message,
+      'lastMessageTime': DateTime.now(),
+    });
   }
 
-  //for listing all the chats of a user
   @override
-  Stream<List<ChatModel>> getUserChats() {
-    User currentUser = auth.currentUser!;
+  Stream<List<ChatModel>> getUserChats(String uid) {
 
-    var currentUserUid = currentUser.uid;
+
     return firestore
         .collection('chats')
-        .where('participants', arrayContains: currentUserUid)
+        .where('participantIds', arrayContains: uid)
         .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => ChatModel.fromEntity(ChatEntity.fromDocument(doc.data())))
-                  .toList(),
-        );
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return ChatModel.fromEntity(ChatEntity.fromDocument(doc.data()));
+          }).toList();
+        });
   }
 
   @override
-  Future<void> createChatIfNotExist(String uid) async {
-    String senderUid = auth.currentUser!.uid;
-    String chatId = '$senderUid-$uid';
+  Future<void> createChatIfNotExist(String otherUid) async {
+    final senderUid = auth.currentUser!.uid;
+    final chatId = '$senderUid-$otherUid';
 
-    // Chat belgesinin var olup olmadığını kontrol et
-    DocumentSnapshot chatDoc = await firestore.collection('chats').doc(chatId).get();
+    final chatDoc = await firestore.collection('chats').doc(chatId).get();
 
     if (!chatDoc.exists) {
-      // Eğer sohbet yoksa, yeni bir sohbet belgesi oluştur
+      final senderSnap = await firestore.collection('users').doc(senderUid).get();
+      final receiverSnap = await firestore.collection('users').doc(otherUid).get();
+
+      final senderName = senderSnap.data()?['username'] ?? 'Unknown';
+      final receiverName = receiverSnap.data()?['username'] ?? 'Unknown';
+
       await firestore.collection('chats').doc(chatId).set({
-        'participants': [senderUid, uid],
+        'chatId': chatId,
+        'participantIds': [senderUid, otherUid],
+        'participantNames': [senderName, receiverName],
         'createdAt': DateTime.now(),
-        // 'lastMessage': '', // Opsiyonel: Son mesajı saklamak için
+        'lastMessage': '',
+        'lastMessageTime': DateTime.now(),
       });
     }
   }

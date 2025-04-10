@@ -13,4 +13,6 @@ abstract class UserRepository {
   Future<UserModel> getUserData(String uid);
 
   Future<String> uploadPicture(String file, String uid);
+
+  Future<List<UserModel>> searchUsers(String username);
 }

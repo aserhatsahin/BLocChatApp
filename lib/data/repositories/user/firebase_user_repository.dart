@@ -1,12 +1,9 @@
-import 'dart:io';
 import 'dart:developer';
-
 import 'package:bloc_chatapp/data/entitites/user_entity.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
 import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class FirebaseUserRepository implements UserRepository {
   FirebaseUserRepository({FirebaseAuth? firebaseAuth})
@@ -14,6 +11,32 @@ class FirebaseUserRepository implements UserRepository {
 
   final FirebaseAuth _firebaseAuth;
   final userCollection = FirebaseFirestore.instance.collection('users');
+
+  @override
+  Future<List<UserModel>> searchUsers(String username) async {
+    try {
+      log("Searching users for: $username");
+      final snapshot =
+          await userCollection
+              .where('username', isGreaterThanOrEqualTo: username)
+              .where('username', isLessThanOrEqualTo: username + '\uf8ff')
+              .get();
+      log('Search complete ${snapshot.docs.length} users found');
+      final users =
+          snapshot.docs.map((doc) {
+            final data = doc.data();
+            log("User found: $data");
+            return UserModel.fromEntity(UserEntity.fromDocument(data));
+          }).toList();
+      log('Fetched users: $users');
+      return users;
+    } catch (e) {
+      log("Error in searchUsers: $e");
+      rethrow;
+    }
+  }
+
+  // Diğer metodlar değişmedi
   @override
   Future<UserModel> getUserData(String uid) {
     try {
@@ -40,7 +63,7 @@ class FirebaseUserRepository implements UserRepository {
   @override
   Future<void> setUserData(UserModel user) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      await userCollection.doc(user.uid).set({
         'uid': user.uid,
         'email': user.email,
         'username': user.username,
@@ -57,7 +80,6 @@ class FirebaseUserRepository implements UserRepository {
       await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
     } catch (e) {
       log(e.toString());
-
       rethrow;
     }
   }
@@ -69,15 +91,12 @@ class FirebaseUserRepository implements UserRepository {
         email: user.email,
         password: password,
       );
-
-      // Yeni bir UserModel oluştur ve UID'yi güncelle
       UserModel updatedUser = UserModel(
-        uid: userCredential.user!.uid, // UID'yi buradan alıyoruz
+        uid: userCredential.user!.uid,
         email: user.email,
         username: user.username,
         imageUrl: user.imageUrl,
       );
-
       return updatedUser;
     } catch (e) {
       throw e;
@@ -86,24 +105,7 @@ class FirebaseUserRepository implements UserRepository {
 
   @override
   Future<String> uploadPicture(String file, String uid) async {
-    try {
-      File imageFile = File(file);
-      Reference firebaseStoreRef = FirebaseStorage.instance.ref().child(
-        '$uid/PP/${uid}_lead',
-        //resmin kaydedilecegi dosyanin firebase storegadaki yolu
-      );
-      await firebaseStoreRef.putFile(imageFile); //Upload picture to storage
-
-      ///GET FOWNLOAD URL
-
-      String url = await firebaseStoreRef.getDownloadURL();
-      await userCollection.doc(uid).update({'imageURL': url}); //firestore a img url kaydetmek
-
-      return url;
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+    throw UnimplementedError();
   }
 
   @override
@@ -120,5 +122,9 @@ class FirebaseUserRepository implements UserRepository {
         );
       }
     });
+  }
+Future<String> getUsername(String uid) async {
+    final doc = await FirebaseFirestore.instance.collection("users").doc(uid).get();
+    return doc.data()?['username'] ?? 'Unknown';
   }
 }

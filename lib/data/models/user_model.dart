@@ -5,7 +5,6 @@ class UserModel extends Equatable {
   final String uid;
   final String email;
   final String username;
-
   final String imageUrl;
 
   const UserModel({
@@ -16,12 +15,10 @@ class UserModel extends Equatable {
   });
 
   UserEntity toEntity() {
-    return UserEntity(uid: uid, email: email, name: username, imageUrl: imageUrl);
+    return UserEntity(uid: uid, email: email, username: username, imageUrl: imageUrl);
   }
 
-  // getter to determine whether the current user is empty
   bool get isEmpty => this == UserModel.empty;
-  //getter to determine whether the current user is not empty
   bool get isNotEmpty => this != UserModel.empty;
 
   UserModel copyWith({String? uid, String? email, String? username, String? imageUrl}) {
@@ -33,12 +30,12 @@ class UserModel extends Equatable {
     );
   }
 
-  static var empty = UserModel(uid: '', email: '', username: '', imageUrl: '');
+  static var empty = UserModel(uid: '', email: '', username: '', imageUrl: 'No Image');
   static UserModel fromEntity(UserEntity entity) {
     return UserModel(
       uid: entity.uid,
       email: entity.email,
-      username: entity.name,
+      username: entity.username, // entity.name yerine entity.username
       imageUrl: entity.imageUrl,
     );
   }
