@@ -1,6 +1,5 @@
-
-
 import 'package:bloc_chatapp/data/entitites/chat_entity.dart';
+import 'package:bloc_chatapp/data/entitites/message_entity.dart';
 import 'package:bloc_chatapp/data/models/chat_model.dart';
 import 'package:bloc_chatapp/data/models/message_model.dart';
 import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
@@ -15,11 +14,13 @@ class FirebaseChatRepository extends ChatRepository {
   Stream<ChatModel?> get chatModel => throw UnimplementedError();
 
   @override
-  Stream<QuerySnapshot> getChatData(String receiverUid) {
-    final currentUserUid = auth.currentUser!.uid;
-    final chatId = "$currentUserUid-$receiverUid";
-
-    return firestore.collection('chats').doc(chatId).collection('messages').snapshots();
+  Stream<QuerySnapshot> getChatData(String chatId) {
+    return firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('sendedAt', descending: true)
+        .snapshots();
   }
 
   @override
@@ -28,29 +29,30 @@ class FirebaseChatRepository extends ChatRepository {
     final currentUserUid = currentUser.uid;
     final chatId = "$currentUserUid-$receiverUid";
 
-    await firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add(
-          MessageModel(
-            message: message,
-            receiverId: receiverUid,
-            senderId: currentUserUid,
-            sendedAt: DateTime.now(),
-          ).toEntity().toDocument(),
-        );
+    await createChatIfNotExist(receiverUid);
 
-    await firestore.collection('chats').doc(chatId).update({
+    final docRef = firestore.collection('chats').doc(chatId).collection('messages').doc();
+
+    final messageId = docRef.id;
+
+    final newMessage = MessageModel(
+      messageId: messageId,
+      message: message,
+      senderId: currentUserUid,
+      receiverId: receiverUid,
+      sendedAt: DateTime.now(),
+    );
+
+    await docRef.set(newMessage.toEntity().toDocument());
+
+    await firestore.collection('chats').doc(chatId).set({
       'lastMessage': message,
-      'lastMessageTime': DateTime.now(),
-    });
+      'lastMessageTime': Timestamp.fromDate(newMessage.sendedAt),
+    }, SetOptions(merge: true));
   }
 
   @override
   Stream<List<ChatModel>> getUserChats(String uid) {
-
-
     return firestore
         .collection('chats')
         .where('participantIds', arrayContains: uid)
@@ -80,9 +82,9 @@ class FirebaseChatRepository extends ChatRepository {
         'chatId': chatId,
         'participantIds': [senderUid, otherUid],
         'participantNames': [senderName, receiverName],
-        'createdAt': DateTime.now(),
+        'createdAt': FieldValue.serverTimestamp(),
         'lastMessage': '',
-        'lastMessageTime': DateTime.now(),
+        'lastMessageTime': Timestamp.fromDate(DateTime.now()),
       });
     }
   }

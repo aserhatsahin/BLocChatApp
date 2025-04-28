@@ -4,7 +4,7 @@ import 'package:bloc_chatapp/data/repositories/user/firebase_user_repository.dar
 import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/bloc/chat_list/chat_list_bloc.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/bloc/search_user/search_user_bloc.dart';
-import 'package:bloc_chatapp/modules/chat_list_module/bloc/start_chat/start_chat_bloc.dart'; // Hazır BLoC'un
+import 'package:bloc_chatapp/modules/chat_module/bloc/start_chat/start_chat_bloc.dart'; // Hazır BLoC'un
 import 'package:bloc_chatapp/modules/chat_list_module/ui/widgets/chat_list_widget.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/ui/widgets/search_bar_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';

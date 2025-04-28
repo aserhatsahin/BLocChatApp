@@ -32,11 +32,11 @@ class ChatEntity extends Equatable {
   Map<String, Object> toDocument() {
     return {
       'chatId': chatId,
-      'createdAt': createdAt,
+      'createdAt': Timestamp.fromDate(createdAt),
       'participantIds': participantIds,
       'participantNames': participantNames,
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageTime,
+      'lastMessageTime': Timestamp.fromDate(lastMessageTime),
     };
   }
 

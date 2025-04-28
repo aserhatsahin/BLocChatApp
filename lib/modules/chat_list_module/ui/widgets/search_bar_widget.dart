@@ -4,7 +4,9 @@ import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/commons/widgets/input_text_field.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/bloc/search_user/search_user_bloc.dart';
-import 'package:bloc_chatapp/modules/chat_list_module/bloc/start_chat/start_chat_bloc.dart';
+
+
+import 'package:bloc_chatapp/modules/chat_module/ui/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -149,12 +151,19 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                           tileColor: Colors.grey.shade200,
                           hoverColor: AppColors.secondary.withAlpha(50),
                           onTap: () {
-                            // buraya kullanici aramadan sonra kullaniciya tikladigimizda yeni sohbet baslatma ve onu listeye ekleyip orda gosterme
-                            context.read<StartChatBloc>().add(
-                              StartChatRequested(receiverUid: user.uid),
-                            );
                             _hideOverlay();
                             _userSearchController.clear();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => ChatPageView(
+                                      receiverUid: user.uid,
+                                      receiverUsername: user.username,
+                                    ),
+                              ),
+                            );
                           },
                         );
                       },

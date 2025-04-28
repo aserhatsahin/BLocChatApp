@@ -4,23 +4,29 @@ import 'package:bloc_chatapp/data/entitites/message_entity.dart';
 import 'package:equatable/equatable.dart';
 
 class MessageModel extends Equatable {
+
   final String message;
+final String messageId;
   final String senderId;
+
+
   final String receiverId;
   final DateTime sendedAt;
   const MessageModel({
     required this.message,
+required this.messageId,
     required this.senderId,
     required this.receiverId,
     required this.sendedAt,
   });
 
   @override
-  List<Object?> get props => [message, senderId, receiverId, sendedAt];
+  List<Object?> get props => [message, messageId,senderId, receiverId, sendedAt];
 
   MessageEntity toEntity() {
     return MessageEntity(
       message: message,
+      messageId: messageId,
       senderId: senderId,
       receiverId: receiverId,
       sendedAt: sendedAt,
@@ -34,12 +40,14 @@ class MessageModel extends Equatable {
 
   MessageModel copyWith({
     required String message,
+    required String messageId,
     required String senderId,
     required String receiverId,
     required DateTime sendedAt,
   }) {
     return MessageModel(
       message: message,
+      messageId: messageId,
       senderId: senderId,
       receiverId: receiverId,
       sendedAt: sendedAt,
@@ -48,6 +56,7 @@ class MessageModel extends Equatable {
 
   static var empty = MessageModel(
     message: '',
+    messageId: '',
     senderId: '',
     receiverId: '',
     sendedAt: DateTime.now(),
@@ -55,6 +64,7 @@ class MessageModel extends Equatable {
   static MessageModel fromEntity(MessageEntity entity) {
     return MessageModel(
       message: entity.message,
+      messageId: entity.messageId,
       senderId: entity.senderId,
       receiverId: entity.receiverId,
       sendedAt: entity.sendedAt,
@@ -63,6 +73,7 @@ class MessageModel extends Equatable {
 
   get chat => MessageModel(
     message: message,
+    messageId: messageId,
     senderId: senderId,
     receiverId: receiverId,
     sendedAt: sendedAt,
