@@ -15,8 +15,10 @@ dependencies:
   equatable: ^2.0.7
   firebase_auth: ^5.5.1
   cloud_firestore: ^5.6.5
-  firebase_storage: ^12.4.4
-  
+  firebase_storage: ^12.4.5
+  chat_bubbles: ^1.7.0
+  emoji_picker_flutter: ^4.3.0
+  image_picker: ^1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

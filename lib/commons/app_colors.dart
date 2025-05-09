@@ -7,10 +7,12 @@ class AppColors {
   static const Color accent = Color(0xFFB1CF5F); // Sarımsı Yeşil
   static const Color background = Color(0xFFDEF4C6); // Açık Pastel Yeşil
   static const Color darkBackground = Color(0xFF1B512D); // Koyu Yeşil
+  static const Color lightGreen = Color.fromARGB(255, 48, 130, 75); // Koyu Yeşil
 
   // **Nötr ve Genel Kullanım Renkleri**
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color grey = Color(0xFFB0B0B0); // Nötr Gri
   static const Color darkGrey = Color(0xFF707070); // Daha Koyu Gri
+  static const Color chatApp = Color.fromARGB(218, 170, 196, 172);
 }

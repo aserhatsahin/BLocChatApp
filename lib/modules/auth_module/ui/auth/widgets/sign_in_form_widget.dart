@@ -1,12 +1,10 @@
 import 'package:bloc_chatapp/commons/widgets/submit_button_widget.dart';
 import 'package:bloc_chatapp/globals/styles/strings.dart';
 import 'package:bloc_chatapp/modules/auth_module/bloc/authentication_bloc.dart';
-import 'package:bloc_chatapp/modules/chat_list_module/ui/chat_list_page_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc_chatapp/commons/export_commons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// HomePage ekledik
 
 class SignInFormWidget extends StatefulWidget {
   final TextEditingController emailController;
@@ -34,14 +32,9 @@ class _SignInFormWidgetState extends State<SignInFormWidget> {
   Widget build(BuildContext context) {
     return BlocListener<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
-        if (state is AuthenticationSuccess) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ChatListPage()),
-          );
-        } else if (state is AuthenticationFailure) {
+        if (state is AuthenticationFailure) {
           setState(() {
-            _errorMsg = state.errorMessage;
+            _errorMsg = state.msg ?? 'Giriş yapılamadı, lütfen tekrar deneyin.';
           });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_errorMsg!)));
         }
@@ -139,8 +132,4 @@ class _SignInFormWidgetState extends State<SignInFormWidget> {
       ),
     );
   }
-}
-
-extension on AuthenticationFailure {
-  String? get errorMessage => null;
 }

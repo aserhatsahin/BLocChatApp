@@ -7,6 +7,7 @@ class ChatEntity extends Equatable {
   final List<String> participantIds;
   final List<String> participantNames;
   final String lastMessage;
+  final String lastMessageSenderId; // Yeni alan
   final DateTime lastMessageTime;
 
   const ChatEntity({
@@ -15,6 +16,7 @@ class ChatEntity extends Equatable {
     required this.participantIds,
     required this.participantNames,
     required this.lastMessage,
+    required this.lastMessageSenderId,
     required this.lastMessageTime,
   });
 
@@ -25,6 +27,7 @@ class ChatEntity extends Equatable {
       participantIds: List<String>.from(doc['participantIds'] ?? []),
       participantNames: List<String>.from(doc['participantNames'] ?? []),
       lastMessage: doc['lastMessage'] as String? ?? '',
+      lastMessageSenderId: doc['lastMessageSenderId'] as String? ?? '', // Yeni alan
       lastMessageTime: (doc['lastMessageTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -36,6 +39,7 @@ class ChatEntity extends Equatable {
       'participantIds': participantIds,
       'participantNames': participantNames,
       'lastMessage': lastMessage,
+      'lastMessageSenderId': lastMessageSenderId, // Yeni alan
       'lastMessageTime': Timestamp.fromDate(lastMessageTime),
     };
   }
@@ -47,11 +51,12 @@ class ChatEntity extends Equatable {
     participantIds,
     participantNames,
     lastMessage,
+    lastMessageSenderId,
     lastMessageTime,
   ];
 
   @override
   String toString() {
-    return 'ChatEntity(chatId: $chatId, createdAt: $createdAt, participantIds: $participantIds, participantNames: $participantNames, lastMessage: $lastMessage, lastMessageTime: $lastMessageTime)';
+    return 'ChatEntity(chatId: $chatId, createdAt: $createdAt, participantIds: $participantIds, participantNames: $participantNames, lastMessage: $lastMessage, lastMessageSenderId: $lastMessageSenderId, lastMessageTime: $lastMessageTime)';
   }
 }

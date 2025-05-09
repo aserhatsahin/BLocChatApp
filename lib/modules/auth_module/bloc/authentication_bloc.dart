@@ -23,32 +23,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
-          emit(AuthenticationFailure("User not found"));
+          emit(AuthenticationFailure("Kullanıcı bulunamadı"));
           return;
         }
         final uid = currentUser.uid;
-        // Kullanıcı Firestore’da var mı kontrol et
-        try {
-          UserModel userModel = await _userRepository.getUserData(uid);
 
-          if (userModel.isNotEmpty) {
-            emit(AuthenticationSuccess(userModel));
-          } else {
-            emit(
-              AuthenticationSuccess(
-                UserModel(uid: uid, email: event.email, username: "Unknown", imageUrl: ''),
-              ),
-            );
-          }
-        } catch (e) {
-          emit(
-            AuthenticationSuccess(
-              UserModel(uid: uid, email: event.email, username: "Unknown", imageUrl: ''),
-            ),
-          );
-        }
+        // Firestore’dan kullanıcı verilerini al
+        UserModel userModel = await _userRepository.getUserData(uid);
+        emit(AuthenticationSuccess(userModel));
       } catch (e) {
-        emit(AuthenticationFailure(e.toString()));
+        emit(AuthenticationFailure("Giriş yapılamadı: ${e.toString()}"));
       }
     });
 
@@ -62,16 +46,17 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
         emit(AuthenticationSuccess(user));
       } catch (e) {
-        emit(AuthenticationFailure(e.toString()));
+        emit(AuthenticationFailure("Kayıt olunamadı: ${e.toString()}"));
       }
     });
 
     on<LogOutRequested>((event, emit) async {
       try {
         await _userRepository.logOut();
-
         emit(AuthenticationEnded());
-      } catch (e) {}
+      } catch (e) {
+        emit(AuthenticationFailure("Çıkış yapılamadı: ${e.toString()}"));
+      }
     });
   }
 

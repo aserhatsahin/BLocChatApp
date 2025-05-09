@@ -10,6 +10,12 @@ class FirebaseChatRepository extends ChatRepository {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  // chatId oluşturma: uid'leri alfabetik sıraya göre dizip birleştir
+  String _generateChatId(String user1, String user2) {
+    final List<String> uids = [user1, user2]..sort();
+    return "${uids[0]}-${uids[1]}";
+  }
+
   @override
   Stream<ChatModel?> get chatModel => throw UnimplementedError();
 
@@ -27,7 +33,7 @@ class FirebaseChatRepository extends ChatRepository {
   Future<void> sendMessage(String receiverUid, String message) async {
     final currentUser = auth.currentUser!;
     final currentUserUid = currentUser.uid;
-    final chatId = "$currentUserUid-$receiverUid";
+    final chatId = _generateChatId(currentUserUid, receiverUid);
 
     await createChatIfNotExist(receiverUid);
 
@@ -67,7 +73,7 @@ class FirebaseChatRepository extends ChatRepository {
   @override
   Future<void> createChatIfNotExist(String otherUid) async {
     final senderUid = auth.currentUser!.uid;
-    final chatId = '$senderUid-$otherUid';
+    final chatId = _generateChatId(senderUid, otherUid);
 
     final chatDoc = await firestore.collection('chats').doc(chatId).get();
 

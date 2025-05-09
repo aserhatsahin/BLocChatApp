@@ -5,8 +5,9 @@ class ChatModel extends Equatable {
   final String chatId;
   final DateTime createdAt;
   final List<String> participantIds;
-  final List<String> participantNames; //
+  final List<String> participantNames;
   final String lastMessage;
+  final String lastMessageSenderId; // Yeni alan
   final DateTime lastMessageTime;
 
   const ChatModel({
@@ -15,6 +16,7 @@ class ChatModel extends Equatable {
     required this.participantIds,
     required this.participantNames,
     required this.lastMessage,
+    required this.lastMessageSenderId,
     required this.lastMessageTime,
   });
 
@@ -25,6 +27,7 @@ class ChatModel extends Equatable {
       participantIds: participantIds,
       participantNames: participantNames,
       lastMessage: lastMessage,
+      lastMessageSenderId: lastMessageSenderId, // Yeni alan
       lastMessageTime: lastMessageTime,
     );
   }
@@ -38,6 +41,7 @@ class ChatModel extends Equatable {
     List<String>? participantIds,
     List<String>? participantNames,
     String? lastMessage,
+    String? lastMessageSenderId, // Yeni alan
     DateTime? lastMessageTime,
   }) {
     return ChatModel(
@@ -46,6 +50,7 @@ class ChatModel extends Equatable {
       participantIds: participantIds ?? this.participantIds,
       participantNames: participantNames ?? this.participantNames,
       lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageSenderId: lastMessageSenderId ?? this.lastMessageSenderId, // Yeni alan
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
     );
   }
@@ -56,6 +61,7 @@ class ChatModel extends Equatable {
     participantIds: [],
     participantNames: [],
     lastMessage: '',
+    lastMessageSenderId: '', // Yeni alan
     lastMessageTime: DateTime.now(),
   );
 
@@ -64,8 +70,9 @@ class ChatModel extends Equatable {
       chatId: entity.chatId,
       createdAt: entity.createdAt,
       participantIds: entity.participantIds,
-      participantNames: entity.participantNames, // kullanıcı adları BLoC içinde eklenecek
+      participantNames: entity.participantNames,
       lastMessage: entity.lastMessage,
+      lastMessageSenderId: entity.lastMessageSenderId, // Yeni alan
       lastMessageTime: entity.lastMessageTime,
     );
   }
@@ -77,6 +84,7 @@ class ChatModel extends Equatable {
     participantIds,
     participantNames,
     lastMessage,
+    lastMessageSenderId,
     lastMessageTime,
   ];
 }

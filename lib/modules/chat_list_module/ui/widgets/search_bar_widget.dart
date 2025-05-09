@@ -4,8 +4,6 @@ import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/commons/widgets/input_text_field.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/bloc/search_user/search_user_bloc.dart';
-
-
 import 'package:bloc_chatapp/modules/chat_module/ui/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,13 +20,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   final _focusNode = FocusNode();
   Timer? _debounce;
   OverlayEntry? _overlayEntry;
-  final LayerLink _layerLink =
-      LayerLink(); //dropdown menu ile arama kutusunu hizalamak icin gerekiyor [CompositedTransformFollower] ve [CompositedTransformTarget] widgetlarina parametre olarak _layerLink i yollayarak aralarinda baglanti kuruyoruz aslinda
+  final LayerLink _layerLink = LayerLink();
 
   @override
   void initState() {
     super.initState();
-
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         _showOverlay();
@@ -50,7 +46,6 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      //kullanici her harf icin tek tek hemen arama yapmasin diye bi bekleme suresi koyuyoruz
       context.read<SearchUserBloc>().add(SearchUserRequested(username: query));
       _showOverlay();
     });
@@ -67,25 +62,21 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     _overlayEntry = null;
   }
 
-  //OVERLAY -> provides a way to manage a stack of widgets that float above the main app content, without being confined to the regular widget
   OverlayEntry _createOverlayEntry() {
     return OverlayEntry(
       builder:
           (overlayContext) => Positioned(
             width: MediaQuery.of(context).size.width - 32,
-
             child: CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
               offset: const Offset(0, 60),
-
               child: Material(
                 elevation: 1.0,
                 color: Colors.grey.shade200,
-
                 borderOnForeground: true,
                 shape: RoundedRectangleBorder(),
-                child: _buildDropdownContent(context), // `context` buraya geçiyor
+                child: _buildDropdownContent(context),
               ),
             ),
           ),
@@ -94,7 +85,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   Widget _buildDropdownContent(BuildContext blocContext) {
     return BlocBuilder<SearchUserBloc, SearchUserState>(
-      bloc: blocContext.read<SearchUserBloc>(), // Doğru context'ten BLoC'u al
+      bloc: blocContext.read<SearchUserBloc>(),
       builder: (context, state) {
         log('Overlay state: $state');
         if (state is SearchUserLoading) {
@@ -108,7 +99,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             padding: const EdgeInsets.all(AppStyles.paddingXLarge),
             constraints: const BoxConstraints(maxHeight: AppStyles.heightXLarge * 4),
             child: Text(
-              'Error: ',
+              'Hata oluştu',
               style: TextStyle(fontSize: AppStyles.textMedium, color: AppColors.darkGrey),
             ),
           );
@@ -129,7 +120,10 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                     ? Container(
                       alignment: Alignment.center,
                       height: AppStyles.heightXLarge,
-                      child: Padding(padding: EdgeInsets.zero, child: Text('No users found')),
+                      child: const Padding(
+                        padding: EdgeInsets.zero,
+                        child: Text('Couldn\'t find any user'),
+                      ),
                     )
                     : ListView.builder(
                       shrinkWrap: true,
@@ -138,7 +132,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       itemBuilder: (context, index) {
                         final user = filteredUsers[index];
                         return ListTile(
-                          leading: Icon(Icons.supervised_user_circle_sharp),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundImage:
+                                user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
+                                    ? NetworkImage(user.imageUrl)
+                                    : null,
+                            backgroundColor: AppColors.grey,
+                            child:
+                                user.imageUrl.isEmpty || user.imageUrl == 'No Image'
+                                    ? Icon(Icons.person, color: AppColors.white)
+                                    : null,
+                          ),
                           title: Text(
                             user.username,
                             style: TextStyle(
@@ -147,13 +152,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                             ),
                           ),
                           minVerticalPadding: 4,
-
                           tileColor: Colors.grey.shade200,
                           hoverColor: AppColors.secondary.withAlpha(50),
                           onTap: () {
                             _hideOverlay();
                             _userSearchController.clear();
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(

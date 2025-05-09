@@ -1,3 +1,5 @@
+import 'package:bloc_chatapp/data/repositories/chat/firebase_chat_repository.dart';
+import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
 import 'package:bloc_chatapp/data/repositories/user/firebase_user_repository.dart';
 import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/auth_module/bloc/authentication_bloc.dart';
@@ -25,6 +27,12 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
   }
 
   @override
+  void dispose() {
+    tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
@@ -37,7 +45,20 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
             if (state is AuthenticationSuccess) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => ChatListPage()),
+                MaterialPageRoute(
+                  builder:
+                      (context) => MultiRepositoryProvider(
+                        providers: [
+                          RepositoryProvider<UserRepository>(
+                            create: (_) => FirebaseUserRepository(),
+                          ),
+                          RepositoryProvider<ChatRepository>(
+                            create: (_) => FirebaseChatRepository(),
+                          ),
+                        ],
+                        child: ChatListPage(user: state.user),
+                      ),
+                ),
               );
             }
           },
@@ -52,7 +73,7 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      Text(
+                      const Text(
                         'Welcome to Chat App!',
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
@@ -63,7 +84,7 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
                         height: MediaQuery.of(context).size.height * 0.6,
                         child: TabBarView(
                           controller: tabController,
-                          children: [SignInLayout(), SignUpLayout()],
+                          children: const [SignInLayout(), SignUpLayout()],
                         ),
                       ),
                     ],
