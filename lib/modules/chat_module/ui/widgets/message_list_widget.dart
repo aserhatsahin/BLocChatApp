@@ -22,16 +22,21 @@ class MessageListWidget extends StatelessWidget {
           if (messages.isEmpty) {
             return const Center(child: Text('Henüz mesaj yok.'));
           }
+
+          final currentUser = FirebaseAuth.instance.currentUser;
+          final currentUid = currentUser?.uid;
+
           return ListView.builder(
             reverse: true,
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: messages.length,
             itemBuilder: (context, index) {
               final message = messages[index];
-              final isMe = message.senderId != receiverUid;
+              final isMe = currentUid != null && message.senderId == currentUid;
+
               return MessageBubbleWidget(
                 message: message,
-                isMe: isMe, // isMe parametresini ekliyoruz
+                isMe: isMe,
               );
             },
           );

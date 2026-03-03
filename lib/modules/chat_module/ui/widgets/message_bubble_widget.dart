@@ -14,17 +14,51 @@ class MessageBubbleWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: isMe ? AppColors.lightGreen : Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
-          child: Text(
-            message.message,
-            style: TextStyle(
-              color: isMe ? Colors.white : Colors.black,
-              fontSize: AppStyles.textLarge,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(
+              color: isMe ? AppColors.chatApp : Colors.grey.shade200,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: isMe ? const Radius.circular(18) : const Radius.circular(6),
+                bottomRight: isMe ? const Radius.circular(6) : const Radius.circular(18),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  message.message,
+                  style: TextStyle(
+                    color: isMe ? Colors.white : AppColors.darkBackground,
+                    fontSize: AppStyles.textLarge,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  TimeOfDay.fromDateTime(message.sendedAt).format(context),
+                  style: TextStyle(
+                    color: isMe
+                        ? Colors.white.withOpacity(0.8)
+                        : AppColors.darkGrey.withOpacity(0.8),
+                    fontSize: AppStyles.textSmall,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
