@@ -42,7 +42,36 @@ class ChatListWidget extends StatelessWidget {
         } else if (state is ChatListLoaded) {
           if (state.chats.isEmpty) {
             log('SOHBET YOK');
-            return const Center(child: Text("Henüz Sohbet Yok"));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: AppStyles.heightXLarge * 1.5,
+                    color: AppColors.darkGrey.withOpacity(0.6),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Henüz sohbet yok",
+                    style: TextStyle(
+                      fontSize: AppStyles.textLarge,
+                      color: AppColors.darkBackground,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Üstteki arama çubuğundan bir kullanıcı bulup\nilk sohbetini başlatabilirsin.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: AppStyles.textMedium,
+                      color: AppColors.darkGrey.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
           return ListView.builder(
             shrinkWrap: true,
