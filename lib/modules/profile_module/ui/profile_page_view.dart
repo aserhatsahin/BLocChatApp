@@ -2,14 +2,17 @@ import 'dart:io';
 import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
+import 'package:bloc_chatapp/data/repositories/chat/firebase_chat_repository.dart';
+import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
 import 'package:bloc_chatapp/data/repositories/user/firebase_user_repository.dart';
 import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/auth_module/ui/auth/welcome_view.dart';
+import 'package:bloc_chatapp/modules/chat_list_module/bloc/chat_list/chat_list_bloc.dart';
+import 'package:bloc_chatapp/modules/chat_list_module/bloc/search_user/search_user_bloc.dart';
 import 'package:bloc_chatapp/modules/profile_module/bloc/profile_change_bloc.dart';
 import 'package:bloc_chatapp/modules/profile_module/ui/widgets/profile_actions_widget.dart';
 import 'package:bloc_chatapp/modules/profile_module/ui/widgets/profile_form_widget.dart';
 import 'package:bloc_chatapp/modules/profile_module/ui/widgets/profile_header_widget.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,10 +27,13 @@ class ProfilePageView extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<UserRepository>(create: (context) => FirebaseUserRepository()),
+        RepositoryProvider<ChatRepository>(create: (context) => FirebaseChatRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => ProfileChangeBloc(context.read<UserRepository>())),
+          BlocProvider(create: (context) => ChatListBloc(context.read<ChatRepository>())),
+          BlocProvider(create: (context) => SearchUserBloc(context.read<UserRepository>())),
         ],
         child: ProfileView(user: user),
       ),
@@ -99,6 +105,18 @@ class _ProfileViewState extends State<ProfileView> {
                 backgroundColor: AppColors.secondary,
               ),
             );
+
+            if (state.updatedUser != null) {
+              // ChatListBloc’u yenile
+              context.read<ChatListBloc>().add(LoadChatsRequested(uid: state.updatedUser!.uid));
+              // SearchUserBloc’u yenile
+              context.read<SearchUserBloc>().add(
+                SearchUserRequested(username: state.updatedUser!.username),
+              );
+              // Güncellenmiş kullanıcıyı döndür
+              Navigator.pop(context, state.updatedUser);
+            }
+
             if (state.message == 'Log out successfully') {
               Navigator.pushAndRemoveUntil(
                 context,
@@ -134,6 +152,7 @@ class _ProfileViewState extends State<ProfileView> {
                 passwordError: _passwordError,
                 onUsernameErrorChanged: (error) => setState(() => _usernameError = error),
                 onPasswordErrorChanged: (error) => setState(() => _passwordError = error),
+                selectedImage: _image != null ? File(_image!.path) : null,
               ),
               SizedBox(height: AppStyles.heightLarge),
               ProfileActionsWidget(user: widget.user, selectedImage: _image),

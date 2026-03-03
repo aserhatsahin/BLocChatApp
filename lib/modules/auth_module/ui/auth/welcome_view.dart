@@ -46,18 +46,17 @@ class _WelcomeViewState extends State<WelcomeView> with TickerProviderStateMixin
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) => MultiRepositoryProvider(
-                        providers: [
-                          RepositoryProvider<UserRepository>(
-                            create: (_) => FirebaseUserRepository(),
-                          ),
-                          RepositoryProvider<ChatRepository>(
-                            create: (_) => FirebaseChatRepository(),
-                          ),
-                        ],
-                        child: ChatListPage(user: state.user),
+                  builder: (context) => MultiRepositoryProvider(
+                    providers: [
+                      RepositoryProvider<UserRepository>(
+                        create: (_) => FirebaseUserRepository(),
                       ),
+                      RepositoryProvider<ChatRepository>(
+                        create: (_) => FirebaseChatRepository(),
+                      ),
+                    ],
+                    child: ChatListPage(user: state.user),
+                  ),
                 ),
               );
             }

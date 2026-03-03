@@ -1,10 +1,10 @@
+import 'dart:io';
 import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/commons/widgets/input_text_field.dart';
 import 'package:bloc_chatapp/commons/widgets/submit_button_widget.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
 import 'package:bloc_chatapp/modules/profile_module/bloc/profile_change_bloc.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,6 +16,7 @@ class ProfileFormWidget extends StatelessWidget {
   final String? passwordError;
   final Function(String?) onUsernameErrorChanged;
   final Function(String?) onPasswordErrorChanged;
+  final File? selectedImage;
 
   const ProfileFormWidget({
     Key? key,
@@ -26,13 +27,13 @@ class ProfileFormWidget extends StatelessWidget {
     required this.passwordError,
     required this.onUsernameErrorChanged,
     required this.onPasswordErrorChanged,
+    required this.selectedImage,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Username
         InputTextField(
           controller: usernameController,
           hintText: 'New Username',
@@ -53,8 +54,7 @@ class ProfileFormWidget extends StatelessWidget {
           },
           onChanged: (_) => onUsernameErrorChanged(null),
         ),
-        SizedBox(height: AppStyles.heightLarge),
-        // Password
+        SizedBox(height: AppStyles.heightMedium),
         InputTextField(
           controller: passwordController,
           hintText: 'New Password',
@@ -74,24 +74,42 @@ class ProfileFormWidget extends StatelessWidget {
         SizedBox(height: AppStyles.heightLarge),
         SubmitButton(
           onTap: () {
-            final bloc = context.read<ProfileChangeBloc>();
-            bool changesMade = false;
+            final isUsernameValid =
+                usernameController.text.trim().isNotEmpty &&
+                usernameController.text.trim().length >= 3;
+            final isPasswordValid =
+                passwordController.text.trim().isEmpty ||
+                passwordController.text.trim().length >= 6;
 
-            if (usernameController.text != user.username) {
-              bloc.add(UpdateUsernameRequested(user: user, newUsername: usernameController.text));
-              changesMade = true;
-            }
-
-            if (passwordController.text.isNotEmpty) {
-              bloc.add(UpdatePasswordRequested(newPassword: passwordController.text));
-              changesMade = true;
-            }
-
-            if (!changesMade) {
+            if (!isUsernameValid || !isPasswordValid) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No changes to save'), backgroundColor: AppColors.grey),
+                const SnackBar(
+                  content: Text('Please fix the errors in the form'),
+                  backgroundColor: Colors.redAccent,
+                ),
               );
+              return;
             }
+
+            final isUsernameChanged = usernameController.text.trim() != user.username;
+            final isPasswordProvided = passwordController.text.trim().isNotEmpty;
+            final isImageSelected = selectedImage != null;
+
+            if (!isUsernameChanged && !isPasswordProvided && !isImageSelected) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No changes to save'), backgroundColor: Colors.grey),
+              );
+              return;
+            }
+
+            context.read<ProfileChangeBloc>().add(
+              UpdateProfileRequested(
+                user: user,
+                newUsername: isUsernameChanged ? usernameController.text.trim() : null,
+                newPassword: isPasswordProvided ? passwordController.text.trim() : null,
+                imagePath: isImageSelected ? selectedImage!.path : null,
+              ),
+            );
           },
           colors: [
             AppColors.primary,
@@ -100,7 +118,7 @@ class ProfileFormWidget extends StatelessWidget {
             AppColors.white,
           ],
           child: Text(
-            'Save',
+            'Save All Changes',
             style: AppStyles.bodyText.copyWith(color: AppColors.white, fontWeight: FontWeight.bold),
           ),
         ),

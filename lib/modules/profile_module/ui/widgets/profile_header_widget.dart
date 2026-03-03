@@ -31,7 +31,9 @@ class ProfileHeaderWidget extends StatelessWidget {
                   selectedImage != null
                       ? FileImage(File(selectedImage!.path))
                       : (user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
-                              ? NetworkImage(user.imageUrl)
+                              ? NetworkImage(
+                                '${user.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                              )
                               : null)
                           as ImageProvider?,
               backgroundColor: AppColors.grey,

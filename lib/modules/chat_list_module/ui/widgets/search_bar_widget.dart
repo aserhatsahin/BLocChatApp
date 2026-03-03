@@ -122,7 +122,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       height: AppStyles.heightXLarge,
                       child: const Padding(
                         padding: EdgeInsets.zero,
-                        child: Text('Couldn\'t find any user'),
+                        child: Text('Kullanıcı bulunamadı'),
                       ),
                     )
                     : ListView.builder(
@@ -136,7 +136,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                             radius: 20,
                             backgroundImage:
                                 user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
-                                    ? NetworkImage(user.imageUrl)
+                                    ? NetworkImage(
+                                      '${user.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                    )
                                     : null,
                             backgroundColor: AppColors.grey,
                             child:
@@ -185,7 +187,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       child: InputTextField(
         controller: _userSearchController,
         prefixIcon: Icon(Icons.search, color: AppColors.darkBackground),
-        hintText: 'Search Users',
+        hintText: 'Kullanıcı Ara',
         obscureText: false,
         keyboardType: TextInputType.text,
         onChanged: (value) => _onSearchChanged(value ?? ''),

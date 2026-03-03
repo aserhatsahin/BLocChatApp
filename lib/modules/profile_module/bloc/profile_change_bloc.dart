@@ -19,7 +19,7 @@ class ProfileChangeBloc extends Bloc<ProfileChangeEvent, ProfileChangeState> {
         log('Updating username for user: ${event.user.uid} to ${event.newUsername}');
         final user = event.user.copyWith(username: event.newUsername);
         await _userRepository.updateUserData(user);
-        emit(ProfileChangeSuccess(message: 'Kullanıcı Adı Güncellendi'));
+        emit(ProfileChangeSuccess(message: 'Kullanıcı Adı Güncellendi', updatedUser: user));
       } catch (e) {
         log('Error updating username: $e');
         emit(ProfileChangeFailure(error: e.toString()));
@@ -45,9 +45,50 @@ class ProfileChangeBloc extends Bloc<ProfileChangeEvent, ProfileChangeState> {
         final downloadUrl = await _userRepository.uploadPicture(event.filePath, event.user.uid);
         final updatedUser = event.user.copyWith(imageUrl: downloadUrl);
         await _userRepository.updateUserData(updatedUser);
-        emit(ProfileChangeSuccess(message: 'Profil Fotoğrafı Güncellendi'));
+        emit(
+          ProfileChangeSuccess(message: 'Profil Fotoğrafı Güncellendi', updatedUser: updatedUser),
+        );
       } catch (e) {
         log('Error uploading profile picture: $e');
+        emit(ProfileChangeFailure(error: e.toString()));
+      }
+    });
+
+    on<UpdateProfileRequested>((event, emit) async {
+      emit(ProfileChangeLoading());
+      try {
+        log('Updating profile for user: ${event.user.uid}');
+        UserModel updatedUser = event.user;
+
+        // Kullanıcı adı güncelleme
+        if (event.newUsername != null && event.newUsername != event.user.username) {
+          updatedUser = updatedUser.copyWith(username: event.newUsername);
+        }
+
+        // Profil fotoğrafı güncelleme
+        if (event.imagePath != null) {
+          final downloadUrl = await _userRepository.uploadPicture(event.imagePath!, event.user.uid);
+          updatedUser = updatedUser.copyWith(imageUrl: downloadUrl);
+        }
+
+        // Firestore’a güncellenmiş kullanıcıyı kaydet
+        if (updatedUser != event.user) {
+          await _userRepository.updateUserData(updatedUser);
+        }
+
+        // Şifre güncelleme
+        if (event.newPassword != null && event.newPassword!.isNotEmpty) {
+          await _userRepository.updatePassword(event.newPassword!);
+        }
+
+        emit(
+          ProfileChangeSuccess(
+            message: 'Profil Güncellendi',
+            updatedUser: updatedUser != event.user ? updatedUser : null,
+          ),
+        );
+      } catch (e) {
+        log('Error updating profile: $e');
         emit(ProfileChangeFailure(error: e.toString()));
       }
     });

@@ -10,7 +10,7 @@ class UpdateUsernameRequested extends ProfileChangeEvent {
   final UserModel user;
   final String newUsername;
 
-  const UpdateUsernameRequested({required this.user,required this.newUsername});
+  const UpdateUsernameRequested({required this.user, required this.newUsername});
 
   @override
   List<Object?> get props => [user, newUsername];
@@ -18,6 +18,7 @@ class UpdateUsernameRequested extends ProfileChangeEvent {
 
 class UpdatePasswordRequested extends ProfileChangeEvent {
   final String newPassword;
+
   const UpdatePasswordRequested({required this.newPassword});
 
   @override
@@ -27,10 +28,28 @@ class UpdatePasswordRequested extends ProfileChangeEvent {
 class UpdateProfilePictureRequested extends ProfileChangeEvent {
   final UserModel user;
   final String filePath;
+
   const UpdateProfilePictureRequested({required this.user, required this.filePath});
+
   @override
-  // TODO: implement props
   List<Object?> get props => [user, filePath];
+}
+
+class UpdateProfileRequested extends ProfileChangeEvent {
+  final UserModel user;
+  final String? newUsername;
+  final String? newPassword;
+  final String? imagePath;
+
+  const UpdateProfileRequested({
+    required this.user,
+    this.newUsername,
+    this.newPassword,
+    this.imagePath,
+  });
+
+  @override
+  List<Object?> get props => [user, newUsername, newPassword, imagePath];
 }
 
 class LogoutRequested extends ProfileChangeEvent {
