@@ -17,9 +17,6 @@ class FirebaseChatRepository extends ChatRepository {
   }
 
   @override
-  Stream<ChatModel?> get chatModel => throw UnimplementedError();
-
-  @override
   Stream<QuerySnapshot> getChatData(String chatId) {
     return firestore
         .collection('chats')
@@ -37,7 +34,8 @@ class FirebaseChatRepository extends ChatRepository {
 
     await createChatIfNotExist(receiverUid);
 
-    final docRef = firestore.collection('chats').doc(chatId).collection('messages').doc();
+    final docRef =
+        firestore.collection('chats').doc(chatId).collection('messages').doc();
 
     final messageId = docRef.id;
 
@@ -51,10 +49,14 @@ class FirebaseChatRepository extends ChatRepository {
 
     await docRef.set(newMessage.toEntity().toDocument());
 
-    await firestore.collection('chats').doc(chatId).set({
-      'lastMessage': message,
-      'lastMessageTime': Timestamp.fromDate(newMessage.sendedAt),
-    }, SetOptions(merge: true));
+    await firestore.collection('chats').doc(chatId).set(
+      {
+        'lastMessage': message,
+        'lastMessageTime': Timestamp.fromDate(newMessage.sendedAt),
+        'lastMessageSenderId': currentUserUid,
+      },
+      SetOptions(merge: true),
+    );
   }
 
   @override
@@ -78,8 +80,10 @@ class FirebaseChatRepository extends ChatRepository {
     final chatDoc = await firestore.collection('chats').doc(chatId).get();
 
     if (!chatDoc.exists) {
-      final senderSnap = await firestore.collection('users').doc(senderUid).get();
-      final receiverSnap = await firestore.collection('users').doc(otherUid).get();
+      final senderSnap =
+          await firestore.collection('users').doc(senderUid).get();
+      final receiverSnap =
+          await firestore.collection('users').doc(otherUid).get();
 
       final senderName = senderSnap.data()?['username'] ?? 'Unknown';
       final receiverName = receiverSnap.data()?['username'] ?? 'Unknown';
@@ -91,6 +95,7 @@ class FirebaseChatRepository extends ChatRepository {
         'createdAt': FieldValue.serverTimestamp(),
         'lastMessage': '',
         'lastMessageTime': Timestamp.fromDate(DateTime.now()),
+        'lastMessageSenderId': '',
       });
     }
   }

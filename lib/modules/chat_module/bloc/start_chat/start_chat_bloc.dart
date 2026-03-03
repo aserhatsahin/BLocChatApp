@@ -12,12 +12,14 @@ class StartChatBloc extends Bloc<StartChatEvent, StartChatState> {
   final ChatRepository _chatRepository;
 
   StartChatBloc(ChatRepository chatRepository)
-    : _chatRepository = chatRepository,
-      super(StartChatInitial()) {
+      : _chatRepository = chatRepository,
+        super(StartChatInitial()) {
     on<StartChatRequested>((event, emit) async {
       emit(StartChatLoading());
       try {
-        final chatId = "${event.senderUid}-${event.receiverUid}";
+        final uids = [event.senderUid, event.receiverUid]..sort();
+        final chatId = "${uids[0]}-${uids[1]}";
+
         await _chatRepository.createChatIfNotExist(event.receiverUid);
         log("Chat started: $chatId"); // Debug için
         emit(StartChatSuccess(chatId: chatId));
