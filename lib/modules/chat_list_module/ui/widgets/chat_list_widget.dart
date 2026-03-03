@@ -209,10 +209,26 @@ class ChatListWidget extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: AppColors.darkGrey.withOpacity(0.8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (chat.lastMessage.isNotEmpty &&
+                                    chat.lastMessageSenderId != currentUid)
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    margin: const EdgeInsets.only(right: 4),
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 18,
+                                  color: AppColors.darkGrey.withOpacity(0.8),
+                                ),
+                              ],
                             ),
                           ],
                         ),
