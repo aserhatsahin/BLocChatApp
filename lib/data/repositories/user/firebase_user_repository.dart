@@ -205,4 +205,15 @@ class FirebaseUserRepository implements UserRepository {
       throw Exception("Şifre güncellenemedi: $e");
     }
   }
+
+  @override
+  Stream<UserModel> streamUserData(String uid) {
+    return firestore.collection('users').doc(uid).snapshots().map((snapshot) {
+      if (snapshot.exists) {
+        final entity = UserEntity.fromDocument(snapshot.data()!);
+        return UserModel.fromEntity(entity);
+      }
+      throw Exception('Kullanıcı bulunamadı');
+    });
+  }
 }

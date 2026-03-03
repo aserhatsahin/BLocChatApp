@@ -33,4 +33,6 @@ abstract class UserRepository {
 
   // Şifreyi günceller
   Future<void> updatePassword(String newPassword);
+
+  Stream<UserModel> streamUserData(String uid);
 }
