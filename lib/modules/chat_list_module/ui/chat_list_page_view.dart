@@ -15,6 +15,7 @@ import 'package:bloc_chatapp/modules/profile_module/ui/profile_page_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mesh_gradient/mesh_gradient.dart';
 
 class ChatListPage extends StatelessWidget {
   final UserModel user;
@@ -69,16 +70,18 @@ class ChatListPage extends StatelessWidget {
             return GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
               child: Scaffold(
+                backgroundColor: Colors.transparent,
                 appBar: AppBar(
                   title: const Text(
                     'Sohbetler',
                     style: TextStyle(
-                      color: AppColors.white,
+                      color: AppColors.darkBackground,
                       fontSize: AppStyles.textLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  backgroundColor: AppColors.chatApp,
+                  centerTitle: false,
+                  backgroundColor: AppColors.background.withOpacity(0.95),
                   elevation: 0,
                   actions: [
                     GestureDetector(
@@ -103,19 +106,34 @@ class ChatListPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                body: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const SearchBarWidget(),
-                      Expanded(
-                        child: ChatListWidget(
-                          user: currentUser,
-                          userRepository: context.read<UserRepository>(),
-                          chatRepository: context.read<ChatRepository>(),
-                        ),
+                body: AnimatedMeshGradient(
+                  colors: const [
+                    AppColors.background,
+                    Colors.white,
+                    AppColors.secondary,
+                    AppColors.accent,
+                  ],
+                  options: AnimatedMeshGradientOptions(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const SearchBarWidget(),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: ChatListWidget(
+                              user: currentUser,
+                              userRepository: context.read<UserRepository>(),
+                              chatRepository: context.read<ChatRepository>(),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
