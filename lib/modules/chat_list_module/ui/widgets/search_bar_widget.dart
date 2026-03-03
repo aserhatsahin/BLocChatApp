@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/commons/widgets/input_text_field.dart';
+import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
+import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/chat_list_module/bloc/search_user/search_user_bloc.dart';
 import 'package:bloc_chatapp/modules/chat_module/ui/chat_page.dart';
 import 'package:flutter/material.dart';
@@ -72,10 +74,12 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               showWhenUnlinked: false,
               offset: const Offset(0, 60),
               child: Material(
-                elevation: 1.0,
-                color: Colors.grey.shade200,
+                elevation: 4.0,
+                color: Colors.white.withOpacity(0.96),
                 borderOnForeground: true,
-                shape: RoundedRectangleBorder(),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: _buildDropdownContent(context),
               ),
             ),
@@ -114,6 +118,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   .toList();
 
           return Container(
+            padding: const EdgeInsets.symmetric(vertical: 4),
             constraints: const BoxConstraints(maxHeight: AppStyles.heightXLarge * 4),
             child:
                 filteredUsers.isEmpty
@@ -125,51 +130,73 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                         child: Text('Kullanıcı bulunamadı'),
                       ),
                     )
-                    : ListView.builder(
+                    : ListView.separated(
                       shrinkWrap: true,
-                      padding: EdgeInsets.zero,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                       itemCount: filteredUsers.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 4),
                       itemBuilder: (context, index) {
                         final user = filteredUsers[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 20,
-                            backgroundImage:
-                                user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
-                                    ? NetworkImage(
-                                      '${user.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
-                                    )
-                                    : null,
-                            backgroundColor: AppColors.grey,
-                            child:
-                                user.imageUrl.isEmpty || user.imageUrl == 'No Image'
-                                    ? Icon(Icons.person, color: AppColors.white)
-                                    : null,
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                           ),
-                          title: Text(
-                            user.username,
-                            style: TextStyle(
-                              fontSize: AppStyles.textMedium,
-                              color: AppColors.black,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 18,
+                              backgroundImage:
+                                  user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
+                                      ? NetworkImage(
+                                        '${user.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                      )
+                                      : null,
+                              backgroundColor: AppColors.grey,
+                              child:
+                                  user.imageUrl.isEmpty || user.imageUrl == 'No Image'
+                                      ? Icon(Icons.person, color: AppColors.white)
+                                      : null,
                             ),
-                          ),
-                          minVerticalPadding: 4,
-                          tileColor: Colors.grey.shade200,
-                          hoverColor: AppColors.secondary.withAlpha(50),
-                          onTap: () {
-                            _hideOverlay();
-                            _userSearchController.clear();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => ChatPageView(
+                            title: Text(
+                              user.username,
+                              style: TextStyle(
+                                fontSize: AppStyles.textMedium,
+                                color: AppColors.darkBackground,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            minVerticalPadding: 4,
+                            onTap: () {
+                              _hideOverlay();
+                              _userSearchController.clear();
+                              Navigator.push(
+                                blocContext,
+                                MaterialPageRoute(
+                                  builder: (_) => MultiRepositoryProvider(
+                                    providers: [
+                                      RepositoryProvider<UserRepository>.value(
+                                        value: blocContext.read<UserRepository>(),
+                                      ),
+                                      RepositoryProvider<ChatRepository>.value(
+                                        value: blocContext.read<ChatRepository>(),
+                                      ),
+                                    ],
+                                    child: ChatPageView(
                                       receiverUid: user.uid,
                                       receiverUsername: user.username,
                                     ),
-                              ),
-                            );
-                          },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
                     ),
