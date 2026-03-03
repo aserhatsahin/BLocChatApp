@@ -10,7 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ChatListWidget extends StatefulWidget {
+class ChatListWidget extends StatelessWidget {
   final UserModel user;
   final UserRepository userRepository;
   final ChatRepository chatRepository;
@@ -23,16 +23,11 @@ class ChatListWidget extends StatefulWidget {
   });
 
   @override
-  State<ChatListWidget> createState() => _ChatListWidgetState();
-}
-
-class _ChatListWidgetState extends State<ChatListWidget> {
-  final User? currentUser = FirebaseAuth.instance.currentUser;
-
-  @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final String? currentUid = currentUser?.uid;
     if (currentUser == null) {
-      return const Center(child: Text("No Authorized User"));
+      return const Center(child: Text("Yetkili Kullanıcı Yok"));
     }
 
     return BlocBuilder<ChatListBloc, ChatListState>(
@@ -46,8 +41,8 @@ class _ChatListWidgetState extends State<ChatListWidget> {
           );
         } else if (state is ChatListLoaded) {
           if (state.chats.isEmpty) {
-            log('NO CHATS');
-            return const Center(child: Text("No Chats Yet"));
+            log('SOHBET YOK');
+            return const Center(child: Text("Henüz Sohbet Yok"));
           }
           return ListView.builder(
             shrinkWrap: true,
@@ -60,23 +55,35 @@ class _ChatListWidgetState extends State<ChatListWidget> {
             itemCount: state.chats.length,
             itemBuilder: (context, index) {
               final chat = state.chats[index];
-              var displayUserId = 'No User';
-              var displayUserName = 'No Name';
-              var displayImageUrl = '';
+              var displayUserId = 'Kullanıcı Yok';
+              var displayUserName = 'İsim Yok';
 
-              final otherIndex = chat.participantIds.indexWhere((id) => id != currentUser!.uid);
+              final otherIndex = chat.participantIds.indexWhere((id) => id != currentUid);
 
               if (otherIndex != -1) {
                 displayUserId = chat.participantIds[otherIndex];
                 if (chat.participantNames.length > otherIndex) {
                   displayUserName = chat.participantNames[otherIndex];
                 }
+
                 return FutureBuilder<UserModel>(
-                  future: widget.userRepository.getUserData(displayUserId),
+                  future: userRepository.getUserData(displayUserId),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      displayImageUrl = snapshot.data!.imageUrl;
+                    if (!snapshot.hasData) {
+                      return ListTile(
+                        leading: const CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.grey,
+                          child: Icon(Icons.person, color: AppColors.white),
+                        ),
+                        title: Text(displayUserName),
+                        subtitle: const Text('Yükleniyor...'),
+                      );
                     }
+
+                    final otherUser = snapshot.data!;
+                    final displayImageUrl = otherUser.imageUrl;
+                    displayUserName = otherUser.username;
 
                     Widget subtitleWidget;
                     if (chat.lastMessage.isEmpty) {
@@ -86,7 +93,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       );
-                    } else if (chat.lastMessageSenderId == currentUser!.uid) {
+                    } else if (chat.lastMessageSenderId == currentUid) {
                       subtitleWidget = Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -124,12 +131,14 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                         radius: 20,
                         backgroundImage:
                             displayImageUrl.isNotEmpty && displayImageUrl != 'No Image'
-                                ? NetworkImage(displayImageUrl)
+                                ? NetworkImage(
+                                  '${displayImageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                )
                                 : null,
                         backgroundColor: AppColors.grey,
                         child:
                             displayImageUrl.isEmpty || displayImageUrl == 'No Image'
-                                ? Icon(Icons.person, color: AppColors.white)
+                                ? const Icon(Icons.person, color: AppColors.white)
                                 : null,
                       ),
                       title: Text(
@@ -148,12 +157,8 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                             builder:
                                 (context) => MultiRepositoryProvider(
                                   providers: [
-                                    RepositoryProvider<UserRepository>.value(
-                                      value: widget.userRepository,
-                                    ),
-                                    RepositoryProvider<ChatRepository>.value(
-                                      value: widget.chatRepository,
-                                    ),
+                                    RepositoryProvider<UserRepository>.value(value: userRepository),
+                                    RepositoryProvider<ChatRepository>.value(value: chatRepository),
                                   ],
                                   child: ChatPageView(
                                     receiverUid: displayUserId,
@@ -171,7 +176,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
             },
           );
         } else if (state is ChatListLoadFail) {
-          return const Center(child: Text("Chats are not loaded"));
+          return const Center(child: Text("Sohbetler yüklenemedi"));
         }
         return const SizedBox.shrink();
       },

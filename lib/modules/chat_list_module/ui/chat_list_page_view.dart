@@ -21,11 +21,21 @@ class ChatListPage extends StatelessWidget {
 
   const ChatListPage({super.key, required this.user});
 
+  Future<void> _navigateToProfile(BuildContext context, UserModel currentUser) async {
+    final updatedUser = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePageView(user: currentUser)),
+    );
+
+    // StreamBuilder zaten güncellemeleri halledeceği için setState gerekmiyor
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return const Scaffold(body: Center(child: Text('User Authentication Error')));
+    final currentUserFirebase = FirebaseAuth.instance.currentUser;
+
+    if (currentUserFirebase == null) {
+      return const Scaffold(body: Center(child: Text('Kullanıcı Doğrulama Hatası')));
     }
 
     return MultiRepositoryProvider(
@@ -41,78 +51,76 @@ class ChatListPage extends StatelessWidget {
             create:
                 (context) =>
                     ChatListBloc(context.read<ChatRepository>())
-                      ..add(LoadChatsRequested(uid: currentUser.uid)),
+                      ..add(LoadChatsRequested(uid: currentUserFirebase.uid)),
           ),
         ],
-        child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: Scaffold(
-            appBar: AppBar(
-              title: const Text(
-                'Sohbetler',
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: AppStyles.textLarge,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              backgroundColor: AppColors.chatApp,
-              elevation: 0,
-              actions: [
-                GestureDetector(
-                  onTap: () {
-                    log('Navigating to ProfilePageView for user: ${user.uid}');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => MultiRepositoryProvider(
-                              providers: [
-                                RepositoryProvider<UserRepository>(
-                                  create: (context) => FirebaseUserRepository(),
-                                ),
-                              ],
-                              child: ProfilePageView(user: user),
-                            ),
+        child: StreamBuilder<UserModel>(
+          stream: context.read<UserRepository>().streamUserData(currentUserFirebase.uid),
+          initialData: user, // Başlangıçta widget.user’ı kullan
+          builder: (context, snapshot) {
+            UserModel currentUser = user; // Varsayılan olarak widget.user
+            if (snapshot.hasData) {
+              currentUser = snapshot.data!; // Stream’den gelen güncel veri
+            } else if (snapshot.hasError) {
+              log('Stream hatası: ${snapshot.error}');
+              return const Scaffold(body: Center(child: Text('Kullanıcı verisi yüklenemedi')));
+            }
+
+            return GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Scaffold(
+                appBar: AppBar(
+                  title: const Text(
+                    'Sohbetler',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: AppStyles.textLarge,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: AppColors.chatApp,
+                  elevation: 0,
+                  actions: [
+                    GestureDetector(
+                      onTap: () => _navigateToProfile(context, currentUser),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                              currentUser.imageUrl.isNotEmpty && currentUser.imageUrl != 'No Image'
+                                  ? NetworkImage(
+                                    '${currentUser.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                  )
+                                  : null,
+                          backgroundColor: AppColors.grey,
+                          child:
+                              currentUser.imageUrl.isEmpty || currentUser.imageUrl == 'No Image'
+                                  ? Icon(Icons.person, color: AppColors.white)
+                                  : null,
+                        ),
                       ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundImage:
-                          user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
-                              ? NetworkImage(user.imageUrl)
-                              : null,
-                      backgroundColor: AppColors.grey,
-                      child:
-                          user.imageUrl.isEmpty || user.imageUrl == 'No Image'
-                              ? Icon(Icons.person, color: AppColors.white)
-                              : null,
                     ),
+                  ],
+                ),
+                body: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const SearchBarWidget(),
+                      Expanded(
+                        child: ChatListWidget(
+                          user: currentUser,
+                          userRepository: context.read<UserRepository>(),
+                          chatRepository: context.read<ChatRepository>(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const SearchBarWidget(),
-                  Expanded(
-                    child: ChatListWidget(
-                      user: user,
-                      userRepository: context.read<UserRepository>(),
-                      chatRepository: context.read<ChatRepository>(),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

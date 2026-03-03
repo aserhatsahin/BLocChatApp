@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:bloc_chatapp/commons/app_colors.dart';
 import 'package:bloc_chatapp/commons/app_styles.dart';
 import 'package:bloc_chatapp/data/models/user_model.dart';
-import 'package:bloc_chatapp/data/repositories/chat/firebase_chat_repository.dart';
+
 import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
 import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/listen_message/listen_message_bloc.dart';
@@ -28,102 +28,125 @@ class ChatPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser!;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return const Scaffold(body: Center(child: Text('Kullanıcı Doğrulama Hatası')));
+    }
+
     final chatId = _generateChatId(currentUser.uid, receiverUid);
 
-    return FutureBuilder<UserModel>(
-      future: context.read<UserRepository>().getUserData(currentUser.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return StreamBuilder<UserModel>(
+      stream: context.read<UserRepository>().streamUserData(currentUser.uid),
+      initialData: UserModel.empty, // Başlangıçta boş bir UserModel
+      builder: (context, currentUserSnapshot) {
+        UserModel currentUser = UserModel.empty;
+        if (currentUserSnapshot.hasData) {
+          currentUser = currentUserSnapshot.data!;
+        } else if (currentUserSnapshot.hasError) {
+          log('Current user stream hatası: ${currentUserSnapshot.error}');
+          return const Scaffold(body: Center(child: Text('Kullanıcı verisi yüklenemedi')));
         }
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const Scaffold(body: Center(child: Text('Kullanıcı verileri alınamadı')));
-        }
-        final user = snapshot.data!;
 
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create:
-                  (context) =>
-                      ListenMessageBloc(chatRepository: context.read<ChatRepository>())
-                        ..add(ListenMessagesRequested(chatId: chatId)),
-            ),
-            BlocProvider(
-              create: (context) => SendMessageBloc(chatRepository: context.read<ChatRepository>()),
-            ),
-          ],
-          child: Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              title: FutureBuilder<UserModel>(
-                future: context.read<UserRepository>().getUserData(receiverUid),
-                builder: (context, snapshot) {
-                  String imageUrl = '';
-                  if (snapshot.hasData) {
-                    imageUrl = snapshot.data!.imageUrl;
-                  }
-                  return Row(
+        return StreamBuilder<UserModel>(
+          stream: context.read<UserRepository>().streamUserData(receiverUid),
+          initialData: UserModel(
+            uid: receiverUid,
+            username: receiverUsername,
+            email: '',
+            imageUrl: 'No Image',
+          ), // Başlangıçta receiverUsername ile
+          builder: (context, receiverSnapshot) {
+            String receiverName = receiverUsername;
+            String receiverImageUrl = 'No Image';
+            if (receiverSnapshot.hasData) {
+              receiverName = receiverSnapshot.data!.username;
+              receiverImageUrl = receiverSnapshot.data!.imageUrl;
+            } else if (receiverSnapshot.hasError) {
+              log('Receiver stream hatası: ${receiverSnapshot.error}');
+            }
+
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create:
+                      (context) =>
+                          ListenMessageBloc(chatRepository: context.read<ChatRepository>())
+                            ..add(ListenMessagesRequested(chatId: chatId)),
+                ),
+                BlocProvider(
+                  create:
+                      (context) => SendMessageBloc(chatRepository: context.read<ChatRepository>()),
+                ),
+              ],
+              child: Scaffold(
+                appBar: AppBar(
+                  centerTitle: true,
+                  title: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircleAvatar(
                         radius: 16,
                         backgroundImage:
-                            imageUrl.isNotEmpty && imageUrl != 'No Image'
-                                ? NetworkImage(imageUrl)
+                            receiverImageUrl.isNotEmpty && receiverImageUrl != 'No Image'
+                                ? NetworkImage(
+                                  '${receiverImageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                )
                                 : null,
-                        backgroundColor: AppColors.grey,
+                        backgroundColor: const Color.fromARGB(255, 62, 52, 52),
                         child:
-                            imageUrl.isEmpty || imageUrl == 'No Image'
+                            receiverImageUrl.isEmpty || receiverImageUrl == 'No Image'
                                 ? Icon(Icons.person, color: AppColors.white, size: 16)
                                 : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        receiverUsername,
+                        receiverName,
                         style: TextStyle(color: AppColors.white, fontSize: AppStyles.textLarge),
                       ),
                     ],
-                  );
-                },
-              ),
-              backgroundColor: const Color.fromARGB(218, 170, 196, 172),
-              elevation: 0,
-              actions: [
-                GestureDetector(
-                  onTap: () {
-                    log('Navigating to ProfilePageView for user: ${user.uid}');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfilePageView(user: user)),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundImage:
-                          user.imageUrl.isNotEmpty && user.imageUrl != 'No Image'
-                              ? NetworkImage(user.imageUrl)
-                              : null,
-                      backgroundColor: AppColors.grey,
-                      child:
-                          user.imageUrl.isEmpty || user.imageUrl == 'No Image'
-                              ? Icon(Icons.person, color: AppColors.white)
-                              : null,
-                    ),
                   ),
+                  backgroundColor: const Color.fromARGB(218, 170, 196, 172),
+                  elevation: 0,
+                  actions: [
+                    GestureDetector(
+                      onTap: () {
+                        log('Navigating to ProfilePageView for user: ${currentUser.uid}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePageView(user: currentUser),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                              currentUser.imageUrl.isNotEmpty && currentUser.imageUrl != 'No Image'
+                                  ? NetworkImage(
+                                    '${currentUser.imageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                  )
+                                  : null,
+                          backgroundColor: AppColors.grey,
+                          child:
+                              currentUser.imageUrl.isEmpty || currentUser.imageUrl == 'No Image'
+                                  ? Icon(Icons.person, color: AppColors.white)
+                                  : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            body: Column(
-              children: [
-                Expanded(child: MessageListWidget(receiverUid: receiverUid, chatId: chatId)),
-                MessageInputWidget(receiverUid: receiverUid),
-              ],
-            ),
-          ),
+                body: Column(
+                  children: [
+                    Expanded(child: MessageListWidget(receiverUid: receiverUid, chatId: chatId)),
+                    MessageInputWidget(receiverUid: receiverUid),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
