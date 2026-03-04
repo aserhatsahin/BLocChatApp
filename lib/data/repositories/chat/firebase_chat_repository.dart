@@ -99,4 +99,41 @@ class FirebaseChatRepository extends ChatRepository {
       });
     }
   }
+
+  @override
+  Future<void> updateTypingStatus(String receiverUid, bool isTyping) async {
+    final currentUser = auth.currentUser;
+    if (currentUser == null) return;
+
+    final currentUserUid = currentUser.uid;
+    final chatId = _generateChatId(currentUserUid, receiverUid);
+    final fieldName = 'typing_$currentUserUid';
+
+    await firestore.collection('chats').doc(chatId).set(
+      {fieldName: isTyping},
+      SetOptions(merge: true),
+    );
+  }
+
+  @override
+  Stream<bool> listenTypingStatus(String receiverUid) {
+    final currentUser = auth.currentUser;
+    if (currentUser == null) {
+      return Stream<bool>.value(false);
+    }
+
+    final currentUserUid = currentUser.uid;
+    final chatId = _generateChatId(currentUserUid, receiverUid);
+    final fieldName = 'typing_$receiverUid';
+
+    return firestore.collection('chats').doc(chatId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (data == null) return false;
+      final value = data[fieldName];
+      if (value is bool) {
+        return value;
+      }
+      return false;
+    });
+  }
 }

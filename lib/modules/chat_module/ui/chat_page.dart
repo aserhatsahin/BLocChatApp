@@ -8,6 +8,7 @@ import 'package:bloc_chatapp/data/repositories/user_repository.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/listen_message/listen_message_bloc.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/listen_message/listen_message_event.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/send_message/send_message_bloc.dart';
+import 'package:bloc_chatapp/modules/chat_module/bloc/typing_indicator/typing_indicator_bloc.dart';
 import 'package:bloc_chatapp/modules/chat_module/ui/widgets/message_input_widget.dart';
 import 'package:bloc_chatapp/modules/chat_module/ui/widgets/message_list_widget.dart';
 import 'package:bloc_chatapp/modules/profile_module/ui/profile_page_view.dart';
@@ -77,6 +78,11 @@ class ChatPageView extends StatelessWidget {
                   create:
                       (context) => SendMessageBloc(chatRepository: context.read<ChatRepository>()),
                 ),
+                BlocProvider(
+                  create: (context) =>
+                      TypingIndicatorBloc(context.read<ChatRepository>())
+                        ..add(SubscribeTypingIndicator(receiverUid: receiverUid)),
+                ),
               ],
               child: Scaffold(
                 appBar: AppBar(
@@ -140,7 +146,33 @@ class ChatPageView extends StatelessWidget {
                 ),
                 body: Column(
                   children: [
-                    Expanded(child: MessageListWidget(receiverUid: receiverUid, chatId: chatId)),
+                    BlocBuilder<TypingIndicatorBloc, TypingIndicatorState>(
+                      builder: (context, state) {
+                        if (!state.isTyping) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '$receiverName yazıyor...',
+                              style: TextStyle(
+                                color: AppColors.darkGrey.withOpacity(0.9),
+                                fontSize: AppStyles.textSmall,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Expanded(
+                      child: MessageListWidget(
+                        receiverUid: receiverUid,
+                        chatId: chatId,
+                      ),
+                    ),
                     MessageInputWidget(receiverUid: receiverUid),
                   ],
                 ),

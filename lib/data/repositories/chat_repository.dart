@@ -9,4 +9,8 @@ abstract class ChatRepository {
   Stream<List<ChatModel>> getUserChats(String uid);
 
   Future<void> createChatIfNotExist(String uid);
+
+  Future<void> updateTypingStatus(String receiverUid, bool isTyping);
+
+  Stream<bool> listenTypingStatus(String receiverUid);
 }

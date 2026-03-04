@@ -1,4 +1,5 @@
 import 'package:bloc_chatapp/commons/app_colors.dart';
+import 'package:bloc_chatapp/data/repositories/chat_repository.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/send_message/send_message_bloc.dart';
 import 'package:bloc_chatapp/modules/chat_module/bloc/send_message/send_message_event.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -21,6 +22,13 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
 
   @override
   void dispose() {
+    // Kullanıcı inputtan çıkarken typing durumunu sıfırla
+    try {
+      final chatRepository = context.read<ChatRepository>();
+      chatRepository.updateTypingStatus(widget.receiverUid, false);
+    } catch (_) {
+      // context read edilemiyorsa sessizce yoksay
+    }
     _controller.dispose();
     _isTextNotEmpty.dispose();
     super.dispose();
@@ -38,6 +46,8 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
         if (state is SendMessageSuccess) {
           _controller.clear();
           _isTextNotEmpty.value = false;
+          final chatRepository = context.read<ChatRepository>();
+          chatRepository.updateTypingStatus(widget.receiverUid, false);
         } else if (state is SendMessageFailure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
         }
@@ -72,7 +82,13 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
                     child: TextField(
                       controller: _controller,
                       onChanged: (value) {
-                        _isTextNotEmpty.value = value.trim().isNotEmpty;
+                        final trimmed = value.trim();
+                        _isTextNotEmpty.value = trimmed.isNotEmpty;
+                        final chatRepository = context.read<ChatRepository>();
+                        chatRepository.updateTypingStatus(
+                          widget.receiverUid,
+                          trimmed.isNotEmpty,
+                        );
                       },
                       decoration: const InputDecoration(
                         hintText: 'Mesaj yaz...',
