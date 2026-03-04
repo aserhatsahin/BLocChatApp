@@ -13,4 +13,15 @@ abstract class ChatRepository {
   Future<void> updateTypingStatus(String receiverUid, bool isTyping);
 
   Stream<bool> listenTypingStatus(String receiverUid);
+
+  Future<void> deleteMessage({
+    required String chatId,
+    required String messageId,
+  });
+
+  Future<void> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newText,
+  });
 }

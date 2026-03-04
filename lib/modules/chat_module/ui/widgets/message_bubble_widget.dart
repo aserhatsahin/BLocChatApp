@@ -49,14 +49,32 @@ class MessageBubbleWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  TimeOfDay.fromDateTime(message.sendedAt).format(context),
-                  style: TextStyle(
-                    color: isMe
-                        ? Colors.white.withOpacity(0.8)
-                        : AppColors.darkGrey.withOpacity(0.8),
-                    fontSize: AppStyles.textSmall,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      TimeOfDay.fromDateTime(message.sendedAt).format(context),
+                      style: TextStyle(
+                        color: isMe
+                            ? Colors.white.withOpacity(0.8)
+                            : AppColors.darkGrey.withOpacity(0.8),
+                        fontSize: AppStyles.textSmall,
+                      ),
+                    ),
+                    if (message.isEdited) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '(düzenlendi)',
+                        style: TextStyle(
+                          color: isMe
+                              ? Colors.white.withOpacity(0.7)
+                              : AppColors.darkGrey.withOpacity(0.7),
+                          fontSize: AppStyles.textSmall,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

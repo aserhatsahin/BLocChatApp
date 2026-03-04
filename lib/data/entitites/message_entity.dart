@@ -7,6 +7,7 @@ class MessageEntity extends Equatable {
   final String senderId;
   final String receiverId;
   final DateTime sendedAt;
+  final bool isEdited;
 
   const MessageEntity({
     required this.message,
@@ -14,6 +15,7 @@ class MessageEntity extends Equatable {
     required this.senderId,
     required this.receiverId,
     required this.sendedAt,
+    required this.isEdited,
   });
 
   static MessageEntity fromDocument(Map<String, dynamic> doc) {
@@ -23,6 +25,7 @@ class MessageEntity extends Equatable {
       sendedAt: (doc['sendedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       senderId: doc["senderId"] as String? ?? '',
       receiverId: doc["receiverId"] as String? ?? '',
+      isEdited: doc["isEdited"] as bool? ?? false,
     );
   }
 
@@ -33,14 +36,15 @@ class MessageEntity extends Equatable {
       'sendedAt': Timestamp.fromDate(sendedAt),
       'senderId': senderId,
       'receiverId': receiverId,
+      'isEdited': isEdited,
     };
   }
 
   @override
-  List<Object?> get props => [message, messageId, sendedAt, senderId, receiverId];
+  List<Object?> get props => [message, messageId, sendedAt, senderId, receiverId, isEdited];
 
   @override
   String toString() {
-    return 'MessageEntity(message: $message, messageId: $messageId, sendedAt: $sendedAt, senderId: $senderId, receiverId: $receiverId)';
+    return 'MessageEntity(message: $message, messageId: $messageId, sendedAt: $sendedAt, senderId: $senderId, receiverId: $receiverId, isEdited: $isEdited)';
   }
 }

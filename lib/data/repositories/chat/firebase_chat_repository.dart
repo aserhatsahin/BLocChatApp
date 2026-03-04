@@ -45,6 +45,7 @@ class FirebaseChatRepository extends ChatRepository {
       senderId: currentUserUid,
       receiverId: receiverUid,
       sendedAt: DateTime.now(),
+      isEdited: false,
     );
 
     await docRef.set(newMessage.toEntity().toDocument());
@@ -135,5 +136,92 @@ class FirebaseChatRepository extends ChatRepository {
       }
       return false;
     });
+  }
+
+  @override
+  Future<void> deleteMessage({
+    required String chatId,
+    required String messageId,
+  }) async {
+    final messagesCollection =
+        firestore.collection('chats').doc(chatId).collection('messages');
+
+    await messagesCollection.doc(messageId).delete();
+
+    final latestSnapshot = await messagesCollection
+        .orderBy('sendedAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (latestSnapshot.docs.isEmpty) {
+      // Hiç mesaj kalmadıysa chat özetini temizle
+      await firestore.collection('chats').doc(chatId).set(
+        {
+          'lastMessage': '',
+          'lastMessageTime': Timestamp.fromDate(DateTime.now()),
+          'lastMessageSenderId': '',
+        },
+        SetOptions(merge: true),
+      );
+    } else {
+      final doc = latestSnapshot.docs.first;
+      final data = doc.data();
+      await firestore.collection('chats').doc(chatId).set(
+        {
+          'lastMessage': data['message'] as String? ?? '',
+          'lastMessageTime': data['sendedAt'] as Timestamp? ??
+              Timestamp.fromDate(DateTime.now()),
+          'lastMessageSenderId': data['senderId'] as String? ?? '',
+        },
+        SetOptions(merge: true),
+      );
+    }
+  }
+
+  @override
+  Future<void> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newText,
+  }) async {
+    final messageRef = firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc(messageId);
+
+    final messageSnap = await messageRef.get();
+    if (!messageSnap.exists) {
+      return;
+    }
+
+    final data = messageSnap.data() as Map<String, dynamic>? ?? {};
+
+    await messageRef.update({
+      'message': newText,
+      'isEdited': true,
+    });
+
+    // Eğer bu mesaj en son mesajsa, chat özetini de güncelle
+    final latestSnapshot = await firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('sendedAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (latestSnapshot.docs.isNotEmpty &&
+        latestSnapshot.docs.first.id == messageId) {
+      await firestore.collection('chats').doc(chatId).set(
+        {
+          'lastMessage': newText,
+          'lastMessageTime': data['sendedAt'] as Timestamp? ??
+              Timestamp.fromDate(DateTime.now()),
+          'lastMessageSenderId': data['senderId'] as String? ?? '',
+        },
+        SetOptions(merge: true),
+      );
+    }
   }
 }
