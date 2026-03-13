@@ -224,4 +224,20 @@ class FirebaseChatRepository extends ChatRepository {
       );
     }
   }
+
+  @override
+  Future<void> deleteChat(String chatId) async {
+    final chatRef = firestore.collection('chats').doc(chatId);
+    final messagesRef = chatRef.collection('messages');
+
+    final messagesSnapshot = await messagesRef.get();
+
+    final batch = firestore.batch();
+    for (final doc in messagesSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    batch.delete(chatRef);
+
+    await batch.commit();
+  }
 }

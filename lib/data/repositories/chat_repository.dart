@@ -24,4 +24,6 @@ abstract class ChatRepository {
     required String messageId,
     required String newText,
   });
+
+  Future<void> deleteChat(String chatId);
 }

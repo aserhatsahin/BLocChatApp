@@ -142,6 +142,46 @@ class ChatPageView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'delete_chat') {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) {
+                              return AlertDialog(
+                                title: const Text('Sohbeti sil'),
+                                content: const Text(
+                                  'Bu kişiyle olan tüm mesajlar silinecek. Emin misin?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                                    child: const Text('İptal'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                                    child: const Text('Sil'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirm == true) {
+                            await context.read<ChatRepository>().deleteChat(chatId);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: 'delete_chat',
+                          child: Text('Sohbeti sil'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 body: Column(

@@ -158,102 +158,149 @@ class ChatListWidget extends StatelessWidget {
                     final lastMessageTimeText =
                         TimeOfDay.fromDateTime(chat.lastMessageTime).format(context);
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                    return Dismissible(
+                      key: ValueKey(chat.chatId),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.white,
+                          size: 26,
+                        ),
                       ),
-                      child: ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        leading: CircleAvatar(
-                          radius: 22,
-                          backgroundImage:
-                              displayImageUrl.isNotEmpty && displayImageUrl != 'No Image'
-                                  ? NetworkImage(
-                                    '${displayImageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
-                                  )
-                                  : null,
-                          backgroundColor: AppColors.grey,
-                          child:
-                              displayImageUrl.isEmpty || displayImageUrl == 'No Image'
-                                  ? const Icon(Icons.person, color: AppColors.white)
-                                  : null,
-                        ),
-                        title: Text(
-                          displayUserName,
-                          style: TextStyle(
-                            fontSize: AppStyles.textLarge,
-                            color: AppColors.darkBackground,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: subtitleWidget,
-                        trailing: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              lastMessageTimeText,
-                              style: TextStyle(
-                                fontSize: AppStyles.textSmall,
-                                color: AppColors.darkGrey.withOpacity(0.8),
+                      movementDuration: const Duration(milliseconds: 300),
+                      confirmDismiss: (direction) async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (dialogContext) {
+                            return AlertDialog(
+                              title: const Text('Sohbeti sil'),
+                              content: Text(
+                                '$displayUserName ile olan tüm mesajlar silinecek. Emin misin?',
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (chat.lastMessage.isNotEmpty &&
-                                    chat.lastMessageSenderId != currentUid)
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    margin: const EdgeInsets.only(right: 4),
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.accent,
-                                    ),
-                                  ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  size: 18,
-                                  color: AppColors.darkGrey.withOpacity(0.8),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                                  child: const Text('İptal'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                                  child: const Text('Sil'),
                                 ),
                               ],
+                            );
+                          },
+                        );
+                        if (confirm == true) {
+                          await chatRepository.deleteChat(chat.chatId);
+                          return true;
+                        }
+                        return false;
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => MultiRepositoryProvider(
-                                    providers: [
-                                      RepositoryProvider<UserRepository>.value(
-                                        value: userRepository,
-                                      ),
-                                      RepositoryProvider<ChatRepository>.value(
-                                        value: chatRepository,
-                                      ),
-                                    ],
-                                    child: ChatPageView(
-                                      receiverUid: displayUserId,
-                                      receiverUsername: displayUserName,
-                                    ),
-                                  ),
+                        child: ListTile(
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          leading: CircleAvatar(
+                            radius: 22,
+                            backgroundImage:
+                                displayImageUrl.isNotEmpty && displayImageUrl != 'No Image'
+                                    ? NetworkImage(
+                                      '${displayImageUrl}?ts=${DateTime.now().millisecondsSinceEpoch}',
+                                    )
+                                    : null,
+                            backgroundColor: AppColors.grey,
+                            child:
+                                displayImageUrl.isEmpty || displayImageUrl == 'No Image'
+                                    ? const Icon(Icons.person, color: AppColors.white)
+                                    : null,
+                          ),
+                          title: Text(
+                            displayUserName,
+                            style: TextStyle(
+                              fontSize: AppStyles.textLarge,
+                              color: AppColors.darkBackground,
+                              fontWeight: FontWeight.w600,
                             ),
-                          );
-                        },
+                          ),
+                          subtitle: subtitleWidget,
+                          trailing: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                lastMessageTimeText,
+                                style: TextStyle(
+                                  fontSize: AppStyles.textSmall,
+                                  color: AppColors.darkGrey.withOpacity(0.8),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (chat.lastMessage.isNotEmpty &&
+                                      chat.lastMessageSenderId != currentUid)
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.only(right: 4),
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.accent,
+                                      ),
+                                    ),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    size: 18,
+                                    color: AppColors.darkGrey.withOpacity(0.8),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => MultiRepositoryProvider(
+                                      providers: [
+                                        RepositoryProvider<UserRepository>.value(
+                                          value: userRepository,
+                                        ),
+                                        RepositoryProvider<ChatRepository>.value(
+                                          value: chatRepository,
+                                        ),
+                                      ],
+                                      child: ChatPageView(
+                                        receiverUid: displayUserId,
+                                        receiverUsername: displayUserName,
+                                      ),
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     );
                   },
