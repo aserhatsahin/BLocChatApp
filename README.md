@@ -85,13 +85,16 @@ lib/
 ```
 
 ## Screenshots
-Add screenshots under a folder like `assets/screenshots/` and reference them here, for example:
 
-```markdown
-![Auth Screen](assets/screenshots/auth.png)
-![Chat List](assets/screenshots/chat_list.png)
-![Chat Screen](assets/screenshots/chat_screen.png)
-```
+<p align="center">
+  <img src="assets/screenshots/auth.png" width="250" alt="Sign in screen" />
+  &nbsp;
+  <img src="assets/screenshots/chat_list.png" width="250" alt="Chat list" />
+  &nbsp;
+  <img src="assets/screenshots/chat_screen.png" width="250" alt="Chat screen" />
+</p>
+
+<p align="center"><sub>Sign in · Chat list · Conversation (demo data)</sub></p>
 
 ## Setup & Run
 
